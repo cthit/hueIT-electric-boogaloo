@@ -1,11 +1,16 @@
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.url
+import io.ktor.features.ContentNegotiation
+import io.ktor.jackson.jackson
+import io.ktor.request.receive
 import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
@@ -16,8 +21,17 @@ import java.io.File
 val client = HttpClient()
 val debug = true
 
-fun main(args: Array<String>) {
+data class RequestBody(
+    val isGroup: Boolean,
+    val id: Int,
+    val props: List<RequestBodyProperty>
+)
+data class RequestBodyProperty(
+    val key: String,
+    val value: Int
+)
 
+fun main(args: Array<String>) {
     val file = File(args[0])
     val fileLines = file.readLines()
 
@@ -26,74 +40,41 @@ fun main(args: Array<String>) {
     val baseURL = "http://" + fileLines[0] + "/api/" + fileLines[1] + "/"
 
     val server = embeddedServer(Netty, port = 8080) {
+        install(ContentNegotiation){
+            jackson {
+            }
+        }
+
         routing {
+            post("/") {
+                val reqBod = call.receive<RequestBody>()
 
-            route("/{type}") {
-                // Returns the status of all lights/groups
-                get("/all") {
-                    val type = call.parameters["type"] + "s"
+                if (reqBod.props.isEmpty()){
+                    call.respondText {
+                        client.get{
+                            url(baseURL +
+                                    (if (reqBod.isGroup) "groups" else "lights") +
+                                    (if (reqBod.id >= 0) "/" + reqBod.id else ""))
+                        }
+                    }
+                } else {
+                    val body = JSONObject()
 
-                    if (isValidType(type)) {
-                        call.respondText {
-                            client.get {
-                                url(baseURL + type)
+                    reqBod.props.forEach{
+                        when (it.key){
+                            "power" -> body["on"] = it.value != 0
+                            "hue" -> body["hue"] = it.value * 65535 / 360
+                            "sat", "bri" -> body[it.key] = it.value * 254 / 100
+                            "rst" -> {
+                                body["hue"] = 8418
+                                body["bri"] = 254
+                                body["sat"] = 140
                             }
                         }
                     }
-                }
 
-                // Returns the stetus of the selected light/group
-                route("/{number}") {
-                    get {
-                        val type = call.parameters["type"] + "s"
-                        val number = call.parameters["number"]?.toInt()
-
-                        if (isValidType(type)) {
-                            call.respondText {
-                                client.get {
-                                    url(baseURL + type + "/" + number)
-                                }
-                            }
-                        }
-                    }
-
-
-                    get("/power/{power}") {
-                        val body = JSONObject()
-
-                        val power = call.parameters["power"]
-
-                        if (power.equals("on")) {
-                            body.put("on", true)
-                        } else if (power.equals("off")) {
-                            body.put("on", false)
-                        }
-
-                        call.respondText {
-                            attemptStatusUpdate(baseURL, body, call)
-                        }
-                    }
-
-                    get("/color/{hue}/{sat}/{bri}"){
-                        val body = JSONObject()
-
-                        setColor(body, call)
-
-                        call.respondText {
-                            attemptStatusUpdate(baseURL, body, call)
-                        }
-                    }
-
-                    get("/reset"){
-                        val body = JSONObject()
-
-                        body.set("hue", 8418)
-                        body.set("bri", 254)
-                        body.set("sat", 140)
-
-                        call.respondText {
-                            attemptStatusUpdate(baseURL, body, call)
-                        }
+                    call.respondText {
+                        statusUpdate(baseURL, body, if (reqBod.isGroup) "groups" else "lights", reqBod.id)
                     }
                 }
             }
@@ -103,61 +84,14 @@ fun main(args: Array<String>) {
     server.start(wait = true)
 }
 
-fun isValidType(type: String): Boolean {
-    return type.equals("groups") || type.equals("lights")
-}
-
-fun setColor(body: JSONObject, call: ApplicationCall) {
-    val hue = call.parameters["hue"]?.toDoubleOrNull()
-    if (hue != null && hue >= 0 && hue <= 360){
-        body.put("hue", (hue * 65535 / 360).toInt())
-    } else {
-        return
-    }
-
-    val sat = call.parameters["sat"]?.toDoubleOrNull()
-    if (sat != null && sat >= 0 && sat <= 100){
-        body.put("sat", (sat * 254 / 100).toInt())
-    } else {
-        body.remove("hue")
-        return
-    }
-
-    val bri = call.parameters["bri"]?.toDoubleOrNull()
-    if (bri != null && bri >= 0 && bri <= 100){
-        body.put("bri", (bri * 254 / 100).toInt())
-    } else {
-        body.remove("hue")
-        body.remove("sat")
-    }
-}
-
-suspend fun attemptStatusUpdate(baseURL: String, bodyObject: JSONObject, call: ApplicationCall): String {
-    val type = call.parameters["type"] + "s"
-    val number = call.parameters["number"]
-
-    if (isValidType(type)) {
-        if (!number.isNullOrEmpty()) {
-            val id = number.toInt()
-
-            if (bodyObject.isNotEmpty()) {
-                return statusUpdate(baseURL, bodyObject, type, id)
-            }
-            return "Invalid update!"
-        }
-        return "Invalid ID!"
-    }
-    return "Invalid type!"
-}
-
 suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, id: Int): String {
     var stateName = "state"
 
-    if (type.equals("groups")) {
+    if (type == "groups") {
         stateName = "action"
     }
 
-    val fullURL = baseURL + type + "/" + id + "/" + stateName
+    val fullURL = "$baseURL$type/$id/$stateName"
 
     if (debug) {
         println(bodyObject.toString())
