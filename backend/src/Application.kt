@@ -85,11 +85,7 @@ fun main(args: Array<String>) {
 }
 
 suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, id: Int): String {
-    var stateName = "state"
-
-    if (type == "groups") {
-        stateName = "action"
-    }
+    val stateName = if (type == "groups") "action" else "state"
 
     val fullURL = "$baseURL$type/$id/$stateName"
 
