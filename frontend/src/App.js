@@ -1,22 +1,61 @@
 import React from 'react';
 import './App.css';
+import Axios from 'axios';
 
 import {ChromePicker} from 'react-color';
-import {LampView} from './components/LampView.js'
 
-function App() {
-  return (
-    <div className="flex-container">
-      <div>
-        <ChromePicker/>
+const url = "http://localhost:8080/";
+
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      currentColor: "#09CCDA",
+    }
+  }
+
+  handleChangeComplete = (color) => {
+    let obj = {
+      "isGroup": true,
+      "id": 1,
+      "props": [
+        {
+          "key": "hue",
+          "value": color.hsv.h,
+        },
+        {
+          "key": "sat",
+          "value": color.hsv.s * 100,
+        },
+        {
+          "key": "bri",
+          "value": color.hsv.v * 100,
+        },
+      ]
+    };
+    console.log(obj);
+    Axios({
+        method: "post",
+        url: url,
+        data: obj
+      }
+    ).then(function (response) {
+      //console.log(response)
+    })
+  };
+
+  render() {
+    return (
+      <div className="flex-container">
+        <div>
+          <ChromePicker
+            color={this.state.currentColor}
+            onChangeComplete={this.handleChangeComplete}
+          />
+        </div>
       </div>
-      <div>
-        <LampView color="#00FFFF"/>
-        <LampView color="#00AAAA" selected="true"/>
-        <LampView color="#004400"/>
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default App;
