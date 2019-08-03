@@ -26,12 +26,15 @@ data class RequestBodyList(
 data class RequestBody(
     val isGroup: Boolean,
     val id: Int,
-    val props: List<RequestBodyProperty>
+    val props: RequestBodyProperty?
 )
 
 data class RequestBodyProperty(
-    val key: String,
-    val value: Int
+    val pwr: Boolean?,
+    val hue: Double?,
+    val sat: Double?,
+    val bri: Double?,
+    val rst: Boolean?
 )
 
 fun main(args: Array<String>) {
@@ -79,7 +82,7 @@ fun main(args: Array<String>) {
 }
 
 suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
-    if (reqBod.props.isEmpty()) {
+    if (reqBod.props == null) {
         return client.get {
             url(
                 baseURL +
@@ -90,17 +93,22 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
     } else {
         val body = JSONObject()
 
-        reqBod.props.forEach {
-            when (it.key) {
-                "power" -> body["on"] = it.value != 0
-                "hue" -> body["hue"] = it.value * 65535 / 360
-                "sat", "bri" -> body[it.key] = it.value * 254 / 100
-                "rst" -> {
-                    body["hue"] = 8418
-                    body["bri"] = 254
-                    body["sat"] = 140
-                }
-            }
+        if (reqBod.props.pwr != null) {
+            body["on"] = reqBod.props.pwr
+        }
+        if (reqBod.props.hue != null) {
+            body["hue"] = (reqBod.props.hue * 65535 / 360).toInt()
+        }
+        if (reqBod.props.sat != null) {
+            body["sat"] = (reqBod.props.sat * 254 / 100).toInt()
+        }
+        if (reqBod.props.bri != null) {
+            body["bri"] = (reqBod.props.bri * 254 / 100).toInt()
+        }
+        if (reqBod.props.rst != null && reqBod.props.rst) {
+            body["hue"] = 8418
+            body["bri"] = 254
+            body["sat"] = 140
         }
 
         val updateResponse = statusUpdate(baseURL, body, if (reqBod.isGroup) "groups" else "lights", reqBod.id)
