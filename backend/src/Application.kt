@@ -20,6 +20,7 @@ import kotlin.collections.set
 
 val client = HttpClient()
 val debug = true
+val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
 data class RequestBodyList(
     val requestBodyList: List<RequestBody>
@@ -132,16 +133,9 @@ fun isAllowedTime(): Boolean {
 
     val dt = LocalDateTime.now()
 
-    println("Current day of week: " + dt.dayOfWeek.toString())
-    println("Current hour: " + dt.hour)
-
     if (dt.hour < 8 || dt.hour >= 17) {
         return true
     }
-
-    val weekend = ArrayList<DayOfWeek>()
-    weekend.add(DayOfWeek.SATURDAY)
-    weekend.add(DayOfWeek.SUNDAY)
 
     if (dt.dayOfWeek in weekend) {
         return true
