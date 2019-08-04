@@ -14,10 +14,13 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.json.simple.JSONObject
 import java.io.File
+import java.time.DayOfWeek
+import java.time.LocalDateTime
 import kotlin.collections.set
 
 val client = HttpClient()
 val debug = true
+val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
 data class RequestBodyList(
     val requestBodyList: List<RequestBody>
@@ -91,6 +94,10 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
             )
         }
     } else {
+        if (!isAllowedTime()) {
+            return "{\"error\": \"Not allowed to change lights at this time and day.\"}"
+        }
+
         val body = JSONObject()
 
         if (reqBod.props.pwr != null) {
@@ -117,6 +124,24 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
 
         return updateResponse
     }
+}
+
+fun isAllowedTime(): Boolean {
+    if (debug) {
+        return true
+    }
+
+    val dt = LocalDateTime.now()
+
+    if (dt.hour < 8 || dt.hour >= 17) {
+        return true
+    }
+
+    if (dt.dayOfWeek in weekend) {
+        return true
+    }
+
+    return false
 }
 
 suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, id: Int): String {
