@@ -5,6 +5,7 @@ import {Container} from "@material-ui/core";
 import LampLayoutComponent from "./LampLayoutComponent";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
+import {ApplyColor, ApplyColorToAll} from "./Util";
 
 
 export default function AdvancedColorScreen(props) {
@@ -30,7 +31,13 @@ export default function AdvancedColorScreen(props) {
           <Box component="span"/>
           <Grid container>
             <Container>
-              <Button variant="contained" color="primary">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setState(ApplyColorToAll(state))
+                }}
+              >
                 Apply to all
               </Button>
             </Container>

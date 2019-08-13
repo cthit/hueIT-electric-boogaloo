@@ -4,7 +4,7 @@ let convert = require('color-convert');
 // returns a new state where the color is applied
 // to those lamps
 export function ApplyColor(state, indices) {
-  let newState = {}
+  let newState = Object.assign({}, state);
 
   newState.lamps = state.lamps.map(lamp => {
     if (indices.includes(lamp.id)) {
@@ -19,7 +19,22 @@ export function ApplyColor(state, indices) {
     } else return lamp
   });
 
-  newState.color = state.color;
+  return newState;
+}
+
+export function ApplyColorToAll(state) {
+  let newState = Object.assign({}, state);
+
+  newState.lamps = newState.lamps.map(lamp => {
+    let [h, s, v] = convert.hex.hsv(state.color);
+    return {
+      "id": lamp.id,
+      "power": lamp.power,
+      "h": h,
+      "s": s,
+      "v": v,
+    }
+  })
 
   return newState;
 }

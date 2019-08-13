@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import Navigation from './Navigation';
@@ -14,6 +14,17 @@ const N_OF_LAMPS = 8;
 export default function App(props) {
 
   const [state, setState] = useState(DefaultState(8));
+
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+      if (didMountRef.current) {
+        ApplyToBackend(state);
+      } else {
+        didMountRef.current = true;
+      }
+    }
+  );
 
   return (
     <div>

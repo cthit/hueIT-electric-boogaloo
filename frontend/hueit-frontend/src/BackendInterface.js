@@ -3,6 +3,8 @@ import Axios from "axios";
 let url = 'http://localhost:8080';
 
 export default function ApplyToBackend(state) {
+
+
   let bodyList = [];
 
   state.lamps.forEach(function (lamp, idx) {
@@ -18,8 +20,11 @@ export default function ApplyToBackend(state) {
     })
   });
 
+  console.log(`sending:`)
+  console.log(bodyList)
+
   Axios({
-    method: 'post',
+    method: "post",
     url: url,
     body: {
       "requestBodyList": {bodyList}
