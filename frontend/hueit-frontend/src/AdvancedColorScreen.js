@@ -5,12 +5,12 @@ import {Container} from "@material-ui/core";
 import LampLayoutComponent from "./LampLayoutComponent";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
-import {ApplyColor, ApplyColorToAll} from "./Util";
+import {ApplyColorToAll} from "./Util";
 
 
 export default function AdvancedColorScreen(props) {
 
-  const {state, setState, ...children} = props;
+  const {state, setState,} = props;
 
   return (
     <Container>

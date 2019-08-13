@@ -1,19 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
-import logo from './logo.svg';
 import './App.css';
 import Navigation from './Navigation';
-import Button from '@material-ui/core/Button';
-import {ApplyColor} from './Util.js'
 import ApplyToBackend from "./BackendInterface";
-import {ChromePicker} from 'react-color'
-import BasicColorScreen from "./BasicColorScreen";
 
 
 const N_OF_LAMPS = 8;
 
 export default function App(props) {
 
-  const [state, setState] = useState(DefaultState(8));
+  const [state, setState] = useState(DefaultState(N_OF_LAMPS));
 
   const didMountRef = useRef(false);
 

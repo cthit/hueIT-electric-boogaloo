@@ -4,7 +4,6 @@ let url = 'http://localhost:8080';
 
 export default function ApplyToBackend(state) {
 
-
   let bodyList = [];
 
   state.lamps.forEach(function (lamp, idx) {
@@ -20,16 +19,13 @@ export default function ApplyToBackend(state) {
     })
   });
 
-  console.log(`sending:`)
-  console.log(bodyList)
-
-  Axios({
-    method: "post",
-    url: url,
-    body: {
+  Axios.post(
+    url,
+    {
       "requestBodyList": {bodyList}
     }
-  }).then(function (response) {
+  ).then(function (response) {
+    console.log("Response:")
     console.log(response)
   })
 }

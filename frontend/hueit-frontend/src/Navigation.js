@@ -3,17 +3,13 @@ import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import BasicColorScreen from "./BasicColorScreen";
-import {LampToHex, TestPreset} from "./Util";
+import {TestPreset} from "./Util";
 import AdvancedColorScreen from "./AdvancedColorScreen";
 import PresetsScreen from "./PresetsScreen";
 
 export default function Navigation(props) {
 
-  const {children, state, setState, onColorChangeComplete} = props;
-
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
 
   function handleChange(event, newValue) {
     setValue(newValue);
@@ -54,7 +50,7 @@ export default function Navigation(props) {
 
 function TabPane(props) {
 
-  const {children, value, index, ...other} = props;
+  const {children, value, index} = props;
 
   return (
     <Box p={3}

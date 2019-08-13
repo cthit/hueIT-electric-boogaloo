@@ -5,7 +5,7 @@ import {Container} from "@material-ui/core";
 import {LampToHex, ApplyColor} from "./Util";
 
 export default function LampLayoutComponent(props) {
-  const {state, setState, columns, rows, ...children} = props;
+  const {state, setState, columns,} = props;
 
   let rowList = [];
 
@@ -15,24 +15,26 @@ export default function LampLayoutComponent(props) {
 
   return (
     <Container>
-      {rowList.map(row =>
-        MakeRow(row, state, setState)
+      {rowList.map((row, index) =>
+        MakeRow(row, state, setState, index)
       )}
     </Container>
   )
 }
 
 
-function MakeRow(lamps, state, setState) {
+function MakeRow(lamps, state, setState, index = 0) {
   let list = lamps.map(lamp => {
     return <Fab
+      key={lamp.id}
       onClick={() => {
         setState(ApplyColor(state, [lamp.id]))
       }}
       style={{backgroundColor: `#${LampToHex(lamp)}`}
       }
+      children=""
     />
   });
 
-  return (<Grid container> {list}</Grid>)
+  return (<Grid container key={index}> {list}</Grid>)
 }
