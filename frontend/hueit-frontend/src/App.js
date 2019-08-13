@@ -1,26 +1,47 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Navigation from './Navigation';
+import Button from '@material-ui/core/Button';
+import {ApplyColor} from './Util.js'
+import ApplyToBackend from "./BackendInterface";
+import {ChromePicker} from 'react-color'
+import BasicColorScreen from "./BasicColorScreen";
 
-function App() {
+
+const N_OF_LAMPS = 8;
+
+export default function App(props) {
+
+  const [state, setState] = useState(DefaultState(8));
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Navigation
+        state={state}
+        setState={setState}
+      />
     </div>
   );
 }
 
-export default App;
+function DefaultState(nLamps) {
+  let lamps = [];
+  for (let i = 0; i < nLamps; i++) {
+    lamps.push(DefaultLampState(i))
+  }
+  return {
+    "lamps": lamps,
+    "color": "#09CCDA",
+  };
+}
+
+function DefaultLampState(index) {
+  return {
+    'id': index,
+    'power': true,
+    'h': Math.random() * 360,
+    's': Math.random() * 50 + 50,
+    'v': Math.random() * 100,
+  };
+}
