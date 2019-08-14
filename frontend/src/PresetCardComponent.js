@@ -9,7 +9,7 @@ import Container from "@material-ui/core/Container";
 
 export default function PresetCardComponent(props) {
 
-  const {preset} = props
+  const {preset, state, setState} = props
 
   return (
     <Container maxWidth="md">
@@ -25,7 +25,16 @@ export default function PresetCardComponent(props) {
           </CardContent>
         </CardActionArea>
         <CardActions>
-          <Button size="medium" color="primary">
+          <Button
+            size="medium"
+            color="primary"
+            onClick={() => {
+              let newState = {};
+              newState.lamps = preset.value;
+              newState.color = state.color;
+              setState(newState);
+            }}
+          >
             Apply
           </Button>
         </CardActions>
