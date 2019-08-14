@@ -1,3 +1,5 @@
+import {useRef} from "react";
+
 let convert = require('color-convert');
 
 // given a state and a list of affected indices,
@@ -44,6 +46,43 @@ export function LampToHex(lamp) {
     lamp.h,
     lamp.s,
     lamp.v)
+}
+
+export function SavePreset(lamps) {
+
+  // TODO give ability to name it and provide description
+  let id = Math.round(Math.random() * 1000)
+
+  let newPreset = {
+    name: `Preset ${id}`,
+    description: `A randomly generated description! ${id}`,
+    value: lamps
+  }
+  document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`;  // TODO expiration date
+}
+
+
+
+export function LoadPresets() {
+
+  let cookies = document.cookie.split(";").filter(str => {
+    return str.trim().slice(0, 6) === "preset" // TODO just use a standard library instead of this garbage
+  });
+
+  let presets = [];
+
+  cookies.forEach(cookie => {
+    try {
+      let p = JSON.parse(cookie.slice(cookie.indexOf("=") + 1));
+      presets.push(p)  // TODO validate these
+    } catch (e) {
+      console.log(`Malformed preset: ${e}`)
+    }
+  })
+
+  console.log(presets)
+
+  return presets;
 }
 
 export function TestPreset() {

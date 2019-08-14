@@ -1,10 +1,13 @@
 import React from 'react'
 import Grid from "@material-ui/core/Grid";
 import PresetCardComponent from "./PresetCardComponent";
+import {LoadPresets, TestPreset} from "./Util";
 
 export default function PresetsScreen(props) {
 
-  const {presets, ...other} = props;
+  const {...other} = props;
+
+  let presets = DefaultPresets().concat(LoadPresets());
 
   return (
     <Grid container spacing={3}>
@@ -14,4 +17,13 @@ export default function PresetsScreen(props) {
         </Grid>
       )}
     </Grid>)
+}
+
+function DefaultPresets() {
+  return [
+    TestPreset(),
+    TestPreset(),
+    TestPreset(),
+    TestPreset(),
+  ]
 }

@@ -9,6 +9,8 @@ import PresetsScreen from "./PresetsScreen";
 
 export default function Navigation(props) {
 
+  const {children, ...other} = props;
+
   const [value, setValue] = useState(0);
 
   function handleChange(event, newValue) {
@@ -16,7 +18,7 @@ export default function Navigation(props) {
   }
 
   return (
-    <div>
+    <React.Fragment>
       <Paper square elevation={4}>
         <Tabs
           value={value}
@@ -33,18 +35,9 @@ export default function Navigation(props) {
         <AdvancedColorScreen {...props}/>
       </TabPane>
       <TabPane value={value} index={1}>
-        <PresetsScreen {...props} presets={[
-          TestPreset(),
-          TestPreset(),
-          TestPreset(),
-          TestPreset(),
-          TestPreset(),
-          TestPreset(),
-          TestPreset(),
-        ]}/>
+        <PresetsScreen {...props}/>
       </TabPane>
-
-    </div>
+    </React.Fragment>
   );
 }
 

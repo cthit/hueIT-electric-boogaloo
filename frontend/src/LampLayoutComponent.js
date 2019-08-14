@@ -30,7 +30,9 @@ function MakeRow(lamps, state, setState, index = 0) {
       onClick={() => {
         setState(ApplyColor(state, [lamp.id]))
       }}
-      style={{backgroundColor: `#${LampToHex(lamp)}`,}}
+      style={{
+        backgroundColor: `#${LampToHex(lamp)}`,
+      }}
       children=""     // fabs really want children
     />
   });
