@@ -11,7 +11,7 @@ export default function Navigation(props) {
 
   const {children, ...other} = props;
 
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(1);
 
   function handleChange(event, newValue) {
     setValue(newValue);

@@ -22,8 +22,5 @@ export default function PresetsScreen(props) {
 function DefaultPresets() {
   return [
     TestPreset(),
-    TestPreset(),
-    TestPreset(),
-    TestPreset(),
   ]
 }

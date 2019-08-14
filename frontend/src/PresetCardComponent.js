@@ -6,39 +6,66 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Container from "@material-ui/core/Container";
+import Fab from "@material-ui/core/Fab";
+import {LampToHex} from "./Util";
 
 export default function PresetCardComponent(props) {
 
   const {preset, state, setState} = props
 
+  function handleClick() {
+    let newState = {};
+    newState.lamps = preset.lamps;
+    newState.color = state.color;
+    setState(newState);
+  }
+
   return (
     <Container maxWidth="md">
       <Card>
-        <CardActionArea>
+        <CardActionArea onClick={handleClick}>
           <CardContent>
             <Typography gutterBottom variant="h5" component="h2">
               {preset.name}
             </Typography>
-            <Typography variant="body2" color="textSecondary" component="p">
-              {preset.description}
-            </Typography>
+            <GhettoPreview {...props}/>
+            {/*<Typography variant="body2" color="textSecondary" component="p"*/}
+            {/*            style={{maxHeight: "100px"}}>*/}
+            {/*  {preset.description}*/}
+            {/*</Typography>*/}
           </CardContent>
         </CardActionArea>
         <CardActions>
           <Button
             size="medium"
             color="primary"
-            onClick={() => {
-              let newState = {};
-              newState.lamps = preset.value;
-              newState.color = state.color;
-              setState(newState);
-            }}
+            onClick={handleClick}
           >
             Apply
           </Button>
         </CardActions>
       </Card>
+    </Container>
+  )
+}
+
+function GhettoPreview(props) {
+
+  const {preset} = props;
+
+  return (
+    <Container>
+      {preset.lamps.map(lamp => {
+        return (
+          <Fab
+            style={{
+              backgroundColor: `#${LampToHex(lamp)}`,
+            }}
+            disabled={true}
+            children=""
+          />
+        )
+      })}
     </Container>
   )
 }

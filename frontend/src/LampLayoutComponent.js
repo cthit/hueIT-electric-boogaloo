@@ -3,6 +3,7 @@ import Grid from "@material-ui/core/Grid";
 import Fab from "@material-ui/core/Fab";
 import {Container} from "@material-ui/core";
 import {LampToHex, ApplyColor} from "./Util";
+import Box from "@material-ui/core/Box";
 
 export default function LampLayoutComponent(props) {
   const {state, setState, columns,} = props;
@@ -22,20 +23,21 @@ export default function LampLayoutComponent(props) {
   )
 }
 
-
 function MakeRow(lamps, state, setState, index = 0) {
   let list = lamps.map(lamp => {
-    return <Fab
-      key={lamp.id}
-      onClick={() => {
-        setState(ApplyColor(state, [lamp.id]))
-      }}
-      style={{
-        backgroundColor: `#${LampToHex(lamp)}`,
-      }}
-      children=""     // fabs really want children
-    />
+    return (
+      <Box style={{padding: "10px"}}>
+        <Fab
+          key={lamp.id}
+          onClick={() => {
+            setState(ApplyColor(state, [lamp.id]))
+          }}
+          style={{backgroundColor: `#${LampToHex(lamp)}`,}}
+          children=""
+        />
+      </Box>
+    )
   });
 
-  return (<Grid container key={index}> {list}</Grid>)
+  return (<Grid container key={index}>{list}</Grid>)
 }

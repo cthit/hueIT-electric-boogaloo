@@ -1,5 +1,3 @@
-import {useRef} from "react";
-
 let convert = require('color-convert');
 
 // given a state and a list of affected indices,
@@ -56,12 +54,11 @@ export function SavePreset(lamps) {
   let newPreset = {
     name: `Preset ${id}`,
     description: `A randomly generated description! ${id}`,
-    value: lamps
-  }
+    lamps: lamps
+  };
+
   document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`;  // TODO expiration date
 }
-
-
 
 export function LoadPresets() {
 
@@ -91,63 +88,63 @@ export function TestPreset() {
 
 const testPreset = {
   "name": "testPreset",
-  "description": "A preset showcasing the format of preset objects. If a description is very long, it does something I assume!",
-  "value": [
+  "description": "A preset showcasing the format of preset objects. If a description is very long, it does something I assume! How long does it have to be before it gets really strange, that is an important question. Maybe a lorem ipsum would make more sense honestly",
+  "lamps": [
     {
       "id": 0,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 1,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 2,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 3,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 4,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 5,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 6,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
     {
       "id": 7,
       "power": true,
-      "h": 25,
-      "s": 128,
-      "v": 128,
+      "h": 184,
+      "s": 96,
+      "v": 85,
     },
   ]
 }
