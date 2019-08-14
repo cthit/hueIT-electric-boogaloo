@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import Navigation from './Navigation';
-import ApplyToBackend from "./BackendInterface";
+import {Post as BackendPost, Get as BackendGet} from "./BackendInterface";
 
 
 const N_OF_LAMPS = 8;
@@ -11,11 +11,14 @@ export default function App(props) {
   const [state, setState] = useState(DefaultState(N_OF_LAMPS));
 
   const didMountRef = useRef(false);
+  const changedState = useRef(false);
 
   useEffect(() => {
+      changedState.current = true;
       if (didMountRef.current) {
-        ApplyToBackend(state);
+        BackendPost(state);
       } else {
+        // first load, dont send to backend
         didMountRef.current = true;
       }
     }

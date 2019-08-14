@@ -1,8 +1,9 @@
 import Axios from "axios";
+import {TestPreset} from "./Util";
 
 let url = 'http://localhost:8080';
 
-export default function ApplyToBackend(state) {
+export function Post(state) {
 
   let bodyList = [];
 
@@ -28,4 +29,8 @@ export default function ApplyToBackend(state) {
     console.log("Response:")
     console.log(response)
   })
+}
+
+export function Get() {
+  return TestPreset().lamps;
 }
