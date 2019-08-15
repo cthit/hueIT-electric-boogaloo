@@ -35,7 +35,7 @@ function DefaultState(nLamps) {
     }
     return {
         lamps: lamps,
-        color: "#09CCDA"
+        color: "#09CCDA",
     };
 }
 
@@ -45,6 +45,6 @@ function DefaultLampState(index) {
         power: true,
         h: Math.random() * 360,
         s: Math.random() * 50 + 50,
-        v: Math.random() * 100
+        v: Math.random() * 100,
     };
 }

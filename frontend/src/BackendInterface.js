@@ -14,13 +14,13 @@ export function Post(state) {
                 hue: lamp.h,
                 sat: lamp.s,
                 bri: lamp.v,
-                pwr: lamp.power
-            }
+                pwr: lamp.power,
+            },
         });
     });
 
     Axios.post(url, {
-        requestBodyList: { bodyList }
+        requestBodyList: { bodyList },
     }).then(function(response) {
         console.log("Response:");
         console.log(response);

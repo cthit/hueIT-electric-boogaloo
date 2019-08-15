@@ -53,7 +53,7 @@ function GhettoPreview(props) {
                 return (
                     <Fab
                         style={{
-                            backgroundColor: `#${LampToHex(lamp)}`
+                            backgroundColor: `#${LampToHex(lamp)}`,
                         }}
                         disabled={true}
                         children=""

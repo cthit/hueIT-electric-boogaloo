@@ -14,7 +14,7 @@ export function ApplyColor(state, indices) {
                 power: lamp.power,
                 h: h,
                 s: s,
-                v: v
+                v: v,
             };
         } else return lamp;
     });
@@ -32,7 +32,7 @@ export function ApplyColorToAll(state) {
             power: lamp.power,
             h: h,
             s: s,
-            v: v
+            v: v,
         };
     });
 
@@ -50,7 +50,7 @@ export function SavePreset(lamps) {
     let newPreset = {
         name: `Preset ${id}`,
         description: `A randomly generated description! ${id}`,
-        lamps: lamps
+        lamps: lamps,
     };
 
     document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`; // TODO expiration date
@@ -91,56 +91,56 @@ const testPreset = {
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 1,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 2,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 3,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 4,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 5,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 6,
             power: true,
             h: 184,
             s: 96,
-            v: 85
+            v: 85,
         },
         {
             id: 7,
             power: true,
             h: 184,
             s: 96,
-            v: 85
-        }
-    ]
+            v: 85,
+        },
+    ],
 };
