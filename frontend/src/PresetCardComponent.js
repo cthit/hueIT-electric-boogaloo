@@ -28,7 +28,7 @@ export default function PresetCardComponent(props) {
                             {preset.name}
                         </Typography>
                         <GhettoPreview {...props} />
-                        {/*<Typography variant="body2" color="textSecondary" component="p"*/}
+                        {/*<Typo  graphy variant="body2" color="textSecondary" component="p"*/}
                         {/*            style={{maxHeight: "100px"}}>*/}
                         {/*  {preset.description}*/}
                         {/*</Typography>*/}
@@ -49,12 +49,13 @@ function GhettoPreview(props) {
 
     return (
         <Container>
-            {preset.lamps.map(lamp => {
+            {preset.lamps.map((lamp, index) => {
                 return (
                     <Fab
                         style={{
                             backgroundColor: `#${LampToHex(lamp)}`,
                         }}
+                        key={index}
                         disabled={true}
                         children=""
                     />

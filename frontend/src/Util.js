@@ -72,8 +72,6 @@ export function LoadPresets() {
         }
     });
 
-    console.log(presets);
-
     return presets;
 }
 

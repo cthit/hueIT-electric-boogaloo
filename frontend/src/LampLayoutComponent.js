@@ -4,6 +4,7 @@ import Fab from "@material-ui/core/Fab";
 import { Container } from "@material-ui/core";
 import { LampToHex, ApplyColor } from "./Util";
 import Box from "@material-ui/core/Box";
+import Paper from "@material-ui/core/Paper";
 
 export default function LampLayoutComponent(props) {
     const { state, setState, columns } = props;
@@ -22,11 +23,10 @@ export default function LampLayoutComponent(props) {
 }
 
 function MakeRow(lamps, state, setState, index = 0) {
-    let list = lamps.map(lamp => {
+    let list = lamps.map((lamp, index) => {
         return (
-            <Box style={{ padding: "10px" }}>
+            <Box key={lamp.id} style={{ padding: "10px" }}>
                 <Fab
-                    key={lamp.id}
                     onClick={() => {
                         setState(ApplyColor(state, [lamp.id]));
                     }}

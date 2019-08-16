@@ -1,29 +1,49 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Navigation from "./Navigation";
-import { Post as BackendPost, Get as BackendGet } from "./BackendInterface";
+import * as Backend from "./BackendInterface";
 
 const N_OF_LAMPS = 8;
 
 export default function App(props) {
     const [state, setState] = useState(DefaultState(N_OF_LAMPS));
 
+    const didUndo = useRef(false);
     const didMountRef = useRef(false);
-    const changedState = useRef(false);
+    const prevStates = useRef([]);
+    // const changedState = useRef(false);
 
     useEffect(() => {
-        changedState.current = true;
+        if (didUndo.current) {
+            didUndo.current = false;
+        } else {
+            prevStates.current.push(state);
+        }
+        // changedState.current = true;
         if (didMountRef.current) {
-            BackendPost(state);
+            Backend.Post(state);
         } else {
             // first load, dont send to backend
             didMountRef.current = true;
         }
     });
 
+    function undo() {
+        if (prevStates.current.length === 0) return;
+        if (state === prevStates.current[prevStates.current.length - 1])
+            prevStates.current.pop();
+        setState(prevStates.current.pop());
+        didUndo.current = true;
+    }
+
     return (
         <div>
-            <Navigation state={state} setState={setState} />
+            <Navigation
+                state={state}
+                setState={setState}
+                handleUndo={undo}
+                disableUndo={prevStates.current.length < 2}
+            />
         </div>
     );
 }
