@@ -4,45 +4,50 @@ import Navigation from "./Navigation";
 import * as Backend from "./BackendInterface";
 
 const N_OF_LAMPS = 8;
+const DEFAULT_COLOR = "#09CCDA";
+
+// Load the core build.
+let _ = require("lodash/core");
 
 export default function App(props) {
-    const [state, setState] = useState(DefaultState(N_OF_LAMPS));
+    const [lamps, setLamps] = useState(DefaultState(N_OF_LAMPS));
+    const [color, setColor] = useState(DEFAULT_COLOR);
 
     const didUndo = useRef(false);
     const didMountRef = useRef(false);
-    const prevStates = useRef([]);
-    // const changedState = useRef(false);
+    const prevLamps = useRef([]);
 
     useEffect(() => {
-        if (didUndo.current) {
-            didUndo.current = false;
-        } else {
-            prevStates.current.push(state);
-        }
-        // changedState.current = true;
         if (didMountRef.current) {
-            Backend.Post(state);
+            let previousState = prevLamps.current[prevLamps.current.length - 1];
+            if (!_.isEqual(lamps, previousState)) {
+                prevLamps.current.push(lamps);
+                Backend.Post(lamps);
+            }
         } else {
             // first load, dont send to backend
             didMountRef.current = true;
+            prevLamps.current.push(lamps);
         }
     });
 
     function undo() {
-        if (prevStates.current.length === 0) return;
-        if (state === prevStates.current[prevStates.current.length - 1])
-            prevStates.current.pop();
-        setState(prevStates.current.pop());
+        if (prevLamps.current.length === 0) return;
+        if (lamps === prevLamps.current[prevLamps.current.length - 1])
+            prevLamps.current.pop();
+        setLamps(prevLamps.current.pop());
         didUndo.current = true;
     }
 
     return (
         <div>
             <Navigation
-                state={state}
-                setState={setState}
+                lamps={lamps}
+                setLamps={setLamps}
+                color={color}
+                setColor={setColor}
                 handleUndo={undo}
-                disableUndo={prevStates.current.length < 2}
+                disableUndo={prevLamps.current.length < 1}
             />
         </div>
     );
@@ -53,10 +58,8 @@ function DefaultState(nLamps) {
     for (let i = 0; i < nLamps; i++) {
         lamps.push(DefaultLampState(i));
     }
-    return {
-        lamps: lamps,
-        color: "#09CCDA",
-    };
+
+    return lamps;
 }
 
 function DefaultLampState(index) {

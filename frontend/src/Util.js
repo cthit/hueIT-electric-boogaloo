@@ -3,12 +3,10 @@ let convert = require("color-convert");
 // given a state and a list of affected indices,
 // returns a new state where the color is applied
 // to those lamps
-export function ApplyColor(state, indices) {
-    let newState = Object.assign({}, state);
-
-    newState.lamps = state.lamps.map(lamp => {
+export function ApplyColor(lamps, color, indices) {
+    return lamps.map(lamp => {
         if (indices.includes(lamp.id)) {
-            let [h, s, v] = convert.hex.hsv(state.color);
+            let [h, s, v] = convert.hex.hsv(color);
             return {
                 id: lamp.id,
                 power: lamp.power,
@@ -18,15 +16,11 @@ export function ApplyColor(state, indices) {
             };
         } else return lamp;
     });
-
-    return newState;
 }
 
-export function ApplyColorToAll(state) {
-    let newState = Object.assign({}, state);
-
-    newState.lamps = newState.lamps.map(lamp => {
-        let [h, s, v] = convert.hex.hsv(state.color);
+export function ApplyColorToAll(lamps, color) {
+    return lamps.map(lamp => {
+        let [h, s, v] = convert.hex.hsv(color);
         return {
             id: lamp.id,
             power: lamp.power,
@@ -35,8 +29,6 @@ export function ApplyColorToAll(state) {
             v: v,
         };
     });
-
-    return newState;
 }
 
 export function LampToHex(lamp) {
@@ -78,6 +70,29 @@ export function LoadPresets() {
 export function TestPreset() {
     return testPreset;
 }
+
+export function arrayCmp(lh, rh) {
+    // if the other array is a falsy value, return
+    if (!rh || !lh) return false;
+
+    if (!(lh instanceof Array && rh instanceof Array)) return false;
+
+    // compare lengths - can save a lot of time
+    if (lh.length !== rh.length) return false;
+
+    for (let i = 0, l = lh.length; i < l; i++) {
+        console.log(lh[i] === rh[i]);
+        if (!lh[i] !== rh[i]) {
+            console.log("failed compare");
+            console.log(lh[i]);
+            console.log(rh[i]);
+            return false;
+        }
+    }
+    return true;
+}
+
+Object.defineProperty(Array.prototype, "equals", { enumerable: false });
 
 const testPreset = {
     name: "testPreset",

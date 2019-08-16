@@ -11,18 +11,16 @@ import IconButton from "@material-ui/core/IconButton";
 import { Container } from "@material-ui/core";
 
 export default function ControlPanelComponent(props) {
-    const { state, setState, handleUndo, disableUndo } = props;
+    const { lamps, setLamps, color, setColor, handleUndo, disableUndo } = props;
 
     return (
         <Paper style={{ padding: "20px", justifyContent: "center" }}>
             <Grid container>
                 <ChromePicker
                     disableAlpha
-                    color={state.color}
+                    color={color}
                     onChangeComplete={color => {
-                        let newState = Object.assign({}, state);
-                        newState.color = color.hex;
-                        setState(newState);
+                        setColor(color.hex);
                     }}
                 />
             </Grid>
@@ -47,7 +45,7 @@ export default function ControlPanelComponent(props) {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-                            setState(ApplyColorToAll(state)); // TODO consider lifting this and save functions
+                            setLamps(ApplyColorToAll(lamps, color)); // TODO consider lifting this and save functions
                         }}
                     >
                         Apply to All
@@ -57,7 +55,7 @@ export default function ControlPanelComponent(props) {
                     <IconButton
                         color="primary"
                         onClick={() => {
-                            SavePreset(state.lamps);
+                            SavePreset(lamps.lamps);
                         }}
                     >
                         <SaveIcon />

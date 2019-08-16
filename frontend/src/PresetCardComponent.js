@@ -10,13 +10,10 @@ import Fab from "@material-ui/core/Fab";
 import { LampToHex } from "./Util";
 
 export default function PresetCardComponent(props) {
-    const { preset, state, setState } = props;
+    const { preset, lamps, setLamps } = props;
 
     function handleClick() {
-        let newState = {};
-        newState.lamps = preset.lamps;
-        newState.color = state.color;
-        setState(newState);
+        setLamps(preset.lamps);
     }
 
     return (

@@ -7,17 +7,17 @@ import AdvancedColorScreen from "./AdvancedColorScreen";
 import PresetsScreen from "./PresetsScreen";
 
 export default function Navigation(props) {
-    const [value, setValue] = useState(0);
+    const [activeTab, setActiveTab] = useState(0);
 
     function handleChange(event, newValue) {
-        setValue(newValue);
+        setActiveTab(newValue);
     }
 
     return (
         <React.Fragment>
             <Paper square elevation={4}>
                 <Tabs
-                    value={value}
+                    value={activeTab}
                     centered
                     indicatorColor="primary"
                     textColor="primary"
@@ -27,10 +27,10 @@ export default function Navigation(props) {
                     <Tab label="Presets" />
                 </Tabs>
             </Paper>
-            <TabPane value={value} index={0}>
+            <TabPane value={activeTab} index={0}>
                 <AdvancedColorScreen {...props} />
             </TabPane>
-            <TabPane value={value} index={1}>
+            <TabPane value={activeTab} index={1}>
                 <PresetsScreen {...props} />
             </TabPane>
         </React.Fragment>

@@ -3,10 +3,10 @@ import { TestPreset } from "./Util";
 
 let url = "http://localhost:8080";
 
-export function Post(state) {
+export function Post(lamps) {
     let bodyList = [];
 
-    state.lamps.forEach(function(lamp, idx) {
+    lamps.forEach(function(lamp, idx) {
         bodyList.push({
             isGroup: false,
             id: lamp.id,
@@ -28,5 +28,6 @@ export function Post(state) {
 }
 
 export function Get() {
+    console.warn("Get unimplemented");
     return TestPreset().lamps;
 }

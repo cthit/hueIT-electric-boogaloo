@@ -7,28 +7,30 @@ import Box from "@material-ui/core/Box";
 import Paper from "@material-ui/core/Paper";
 
 export default function LampLayoutComponent(props) {
-    const { state, setState, columns } = props;
+    const { lamps, setLamps, color, columns } = props;
 
     let rowList = [];
 
-    for (let i = 0; i < state.lamps.length; i += columns) {
-        rowList.push(state.lamps.slice(i, i + columns));
+    for (let i = 0; i < lamps.length; i += columns) {
+        rowList.push(lamps.slice(i, i + columns));
     }
 
     return (
         <Container>
-            {rowList.map((row, index) => MakeRow(row, state, setState, index))}
+            {rowList.map((row, index) =>
+                MakeRow(row, lamps, setLamps, color, index)
+            )}
         </Container>
     );
 }
 
-function MakeRow(lamps, state, setState, index = 0) {
-    let list = lamps.map((lamp, index) => {
+function MakeRow(lampsInRow, lamps, setLamps, color, index = 0) {
+    let list = lampsInRow.map((lamp, index) => {
         return (
             <Box key={lamp.id} style={{ padding: "10px" }}>
                 <Fab
                     onClick={() => {
-                        setState(ApplyColor(state, [lamp.id]));
+                        setLamps(ApplyColor(lamps, color, [lamp.id]));
                     }}
                     style={{ backgroundColor: `#${LampToHex(lamp)}` }}
                     children=""
