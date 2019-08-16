@@ -1,7 +1,7 @@
 import React from "react";
 import Grid from "@material-ui/core/Grid";
 import PresetCardComponent from "./PresetCardComponent";
-import { LoadPresets, TestPreset } from "./Util";
+import { LoadPresets } from "./Util";
 
 export default function PresetsScreen(props) {
     const { ...other } = props;
@@ -20,5 +20,5 @@ export default function PresetsScreen(props) {
 }
 
 function DefaultPresets() {
-    return [TestPreset()];
+    return [];
 }

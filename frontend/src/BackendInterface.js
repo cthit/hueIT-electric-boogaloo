@@ -1,7 +1,7 @@
 import Axios from "axios";
-import { TestPreset } from "./Util";
+import { testPreset } from "./Util";
 
-let url = "http://localhost:8080";
+let url = "http://localhost:8080/list";
 
 export function Post(lamps) {
     let bodyList = [];
@@ -19,15 +19,23 @@ export function Post(lamps) {
         });
     });
 
-    Axios.post(url, {
-        requestBodyList: { bodyList },
-    }).then(function(response) {
-        console.log("Response:");
-        console.log(response);
-    });
+    let body = {
+        requestBodyList: bodyList,
+    };
+    console.log("BODY");
+    console.log(body);
+    console.log(JSON.stringify(body));
+
+    Axios.post(url, body)
+        .then(function(response) {
+            console.log(response);
+        })
+        .catch(function(error) {
+            console.log(error);
+        });
 }
 
 export function Get() {
     console.warn("Get unimplemented");
-    return TestPreset().lamps;
+    return testPreset.lamps;
 }

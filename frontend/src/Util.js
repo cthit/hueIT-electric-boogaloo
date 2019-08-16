@@ -67,34 +67,7 @@ export function LoadPresets() {
     return presets;
 }
 
-export function TestPreset() {
-    return testPreset;
-}
-
-export function arrayCmp(lh, rh) {
-    // if the other array is a falsy value, return
-    if (!rh || !lh) return false;
-
-    if (!(lh instanceof Array && rh instanceof Array)) return false;
-
-    // compare lengths - can save a lot of time
-    if (lh.length !== rh.length) return false;
-
-    for (let i = 0, l = lh.length; i < l; i++) {
-        console.log(lh[i] === rh[i]);
-        if (!lh[i] !== rh[i]) {
-            console.log("failed compare");
-            console.log(lh[i]);
-            console.log(rh[i]);
-            return false;
-        }
-    }
-    return true;
-}
-
-Object.defineProperty(Array.prototype, "equals", { enumerable: false });
-
-const testPreset = {
+export const testPreset = {
     name: "testPreset",
     description:
         "A preset showcasing the format of preset objects. If a description is very long, it does something I assume! How long does it have to be before it gets really strange, that is an important question. Maybe a lorem ipsum would make more sense honestly",

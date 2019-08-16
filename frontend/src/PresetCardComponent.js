@@ -21,14 +21,15 @@ export default function PresetCardComponent(props) {
             <Card>
                 <CardActionArea onClick={handleClick}>
                     <CardContent>
-                        <Typography gutterBottom variant="h5" component="h2">
+                        <Typography
+                            gutterBottom
+                            variant="h5"
+                            component="h2"
+                            onClick={() => alert("hi")}
+                        >
                             {preset.name}
                         </Typography>
                         <GhettoPreview {...props} />
-                        {/*<Typo  graphy variant="body2" color="textSecondary" component="p"*/}
-                        {/*            style={{maxHeight: "100px"}}>*/}
-                        {/*  {preset.description}*/}
-                        {/*</Typography>*/}
                     </CardContent>
                 </CardActionArea>
                 <CardActions>
