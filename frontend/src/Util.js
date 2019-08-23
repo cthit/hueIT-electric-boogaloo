@@ -1,6 +1,19 @@
 let convert = require("color-convert");
 let cookie = require("cookie");
 
+String.prototype.hashCode = function() {
+    let hash = 0,
+        i,
+        chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        chr = this.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+};
+
 // given a state and a list of affected indices,
 // returns a new state where the color is applied
 // to those lamps
@@ -36,22 +49,17 @@ export function LampToHex(lamp) {
     return convert.hsv.hex(lamp.h, lamp.s, lamp.v);
 }
 
-export function SavePreset(lamps) {
-    console.log("lamps");
-    console.log(lamps);
+export function SavePreset(lamps, name) {
     // TODO give ability to name it and provide description
     let id = Math.round(Math.random() * 1000);
-
     let newPreset = {
-        name: `Preset ${id}`,
+        name: name,
         description: `A randomly generated description! ${id}`,
         lamps: lamps,
+        hash: name.hashCode(),
     };
 
-    console.log("newPreset");
-    console.log(newPreset);
-
-    document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`; // TODO expiration date?
+    document.cookie = `preset.${newPreset.hash}=${JSON.stringify(newPreset)}`; // TODO expiration date?
 }
 
 export function LoadPresets() {
@@ -63,7 +71,8 @@ export function LoadPresets() {
         return (
             p.hasOwnProperty("name") &&
             p.hasOwnProperty("description") &&
-            p.hasOwnProperty("lamps")
+            p.hasOwnProperty("lamps") &&
+            p.hasOwnProperty("hash")
         );
     }
 
@@ -76,6 +85,13 @@ export function LoadPresets() {
         }
     }
     return presets;
+}
+
+export function DeletePreset(preset) {
+    let c = `preset.${preset.hash}=${JSON.stringify(
+        preset
+    )}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+    document.cookie = c;
 }
 
 export const testPreset = {

@@ -7,35 +7,54 @@ import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Container from "@material-ui/core/Container";
 import Fab from "@material-ui/core/Fab";
-import { LampToHex } from "./Util";
+import DeleteButton from "@material-ui/icons/Delete";
+import { DeletePreset, LampToHex } from "./Util";
+import IconButton from "@material-ui/core/IconButton";
 
 export default function PresetCardComponent(props) {
     const { preset, lamps, setLamps } = props;
 
-    function handleClick() {
+    function handleClickApply() {
         setLamps(preset.lamps);
+    }
+
+    function handleClickDelete() {
+        DeletePreset(preset); // TODO force a render somehow to delete
     }
 
     return (
         <Container maxWidth="md">
             <Card>
-                <CardActionArea onClick={handleClick}>
+                <CardActionArea onClick={handleClickApply}>
                     <CardContent>
                         <Typography
                             gutterBottom
                             variant="h5"
                             component="h2"
-                            onClick={() => alert("hi")}
+                            onClick={() => handleClickApply()}
                         >
                             {preset.name}
                         </Typography>
                         <GhettoPreview {...props} />
                     </CardContent>
                 </CardActionArea>
-                <CardActions>
-                    <Button size="medium" color="primary" onClick={handleClick}>
+                <CardActions
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                    <Button
+                        size="medium"
+                        color="primary"
+                        onClick={handleClickApply}
+                    >
                         Apply
                     </Button>
+                    <IconButton
+                        size="medium"
+                        color="secondary"
+                        onClick={handleClickDelete}
+                    >
+                        <DeleteButton />
+                    </IconButton>
                 </CardActions>
             </Card>
         </Container>

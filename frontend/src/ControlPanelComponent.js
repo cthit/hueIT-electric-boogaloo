@@ -9,12 +9,21 @@ import SaveIcon from "@material-ui/icons/Save";
 import Paper from "@material-ui/core/Paper";
 import IconButton from "@material-ui/core/IconButton";
 import { Container } from "@material-ui/core";
+import Navigation from "./Navigation";
+import SavePresetDialog from "./SavePresetDialog";
 
 export default function ControlPanelComponent(props) {
     const { lamps, setLamps, color, setColor, handleUndo, disableUndo } = props;
 
+    const [openDialog, setOpenDialog] = React.useState(false);
+
     return (
         <Paper style={{ padding: "20px", justifyContent: "center" }}>
+            <SavePresetDialog
+                lamps={lamps}
+                open={openDialog}
+                setOpen={setOpenDialog}
+            />
             <Grid container>
                 <ChromePicker
                     disableAlpha
@@ -55,7 +64,7 @@ export default function ControlPanelComponent(props) {
                     <IconButton
                         color="primary"
                         onClick={() => {
-                            SavePreset(lamps);
+                            setOpenDialog(true);
                         }}
                     >
                         <SaveIcon />

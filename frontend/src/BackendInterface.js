@@ -22,9 +22,6 @@ export function Post(lamps) {
     let body = {
         requestBodyList: bodyList,
     };
-    console.log("BODY");
-    console.log(body);
-    console.log(JSON.stringify(body));
 
     Axios.post(url, body)
         .then(function(response) {
