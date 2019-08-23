@@ -1,4 +1,5 @@
 let convert = require("color-convert");
+let cookie = require("cookie");
 
 // given a state and a list of affected indices,
 // returns a new state where the color is applied
@@ -36,6 +37,8 @@ export function LampToHex(lamp) {
 }
 
 export function SavePreset(lamps) {
+    console.log("lamps");
+    console.log(lamps);
     // TODO give ability to name it and provide description
     let id = Math.round(Math.random() * 1000);
 
@@ -45,25 +48,33 @@ export function SavePreset(lamps) {
         lamps: lamps,
     };
 
-    document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`; // TODO expiration date
+    console.log("newPreset");
+    console.log(newPreset);
+
+    document.cookie = `preset.${id}=${JSON.stringify(newPreset)}`; // TODO expiration date?
 }
 
 export function LoadPresets() {
-    let cookies = document.cookie.split(";").filter(str => {
-        return str.trim().slice(0, 6) === "preset"; // TODO just use a standard library instead of this garbage
-    });
+    let cookies = cookie.parse(document.cookie);
 
     let presets = [];
 
-    cookies.forEach(cookie => {
+    function isPreset(p) {
+        return (
+            p.hasOwnProperty("name") &&
+            p.hasOwnProperty("description") &&
+            p.hasOwnProperty("lamps")
+        );
+    }
+
+    for (const c in cookies) {
         try {
-            let p = JSON.parse(cookie.slice(cookie.indexOf("=") + 1));
-            presets.push(p); // TODO validate these
+            let p = JSON.parse(cookies[c]);
+            if (isPreset(p)) presets.push(p);
         } catch (e) {
             console.log(`Malformed preset: ${e}`);
         }
-    });
-
+    }
     return presets;
 }
 

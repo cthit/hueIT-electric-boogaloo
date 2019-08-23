@@ -55,7 +55,7 @@ export default function ControlPanelComponent(props) {
                     <IconButton
                         color="primary"
                         onClick={() => {
-                            SavePreset(lamps.lamps);
+                            SavePreset(lamps);
                         }}
                     >
                         <SaveIcon />
