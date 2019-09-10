@@ -17,6 +17,7 @@ import java.io.File
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import kotlin.collections.set
+import com.natpryce.konfig.*
 
 val client = HttpClient()
 val debug = true
@@ -41,14 +42,15 @@ data class RequestBodyProperty(
 )
 
 fun main(args: Array<String>) {
-    val file = File(args[0])
-    val fileLines = file.readLines()
+    val config = ConfigurationProperties.fromResource("config.properties")
 
-    // fileLines[0] is the IP for the hue bridge
-    // fileLines[1] is the user that is registered at the bridge
-    val baseURL = "http://" + fileLines[0] + "/api/" + fileLines[1] + "/"
+    val selfPort = Key("server.port", intType)
+    val hueHost = Key("huebridge.host", stringType)
+    val hueKey = Key("huebridge.key", stringType)
 
-    val server = embeddedServer(Netty, port = 8080) {
+    val baseURL = "http://" + config[hueHost] + "/api/" + config[hueKey] + "/"
+
+    val server = embeddedServer(Netty, port = config[selfPort]) {
         install(ContentNegotiation) {
             jackson {
             }
