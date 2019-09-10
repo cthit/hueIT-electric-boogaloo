@@ -3,7 +3,7 @@ import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import AdvancedColorScreen from "./AdvancedColorScreen";
+import ColorScreen from "./ColorScreen";
 import PresetsScreen from "./PresetsScreen";
 
 export default function Navigation(props) {
@@ -28,7 +28,7 @@ export default function Navigation(props) {
                 </Tabs>
             </Paper>
             <TabPane value={activeTab} index={0}>
-                <AdvancedColorScreen {...props} />
+                <ColorScreen {...props} />
             </TabPane>
             <TabPane value={activeTab} index={1}>
                 <PresetsScreen {...props} />

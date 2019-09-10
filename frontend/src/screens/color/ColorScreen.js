@@ -4,7 +4,7 @@ import { Container } from "@material-ui/core";
 import LampLayoutComponent from "./LampLayoutComponent";
 import ControlPanelComponent from "./ControlPanelComponent";
 
-export default function AdvancedColorScreen(props) {
+export default function ColorScreen(props) {
     return (
         <Container>
             <Grid container>
