@@ -1,10 +1,10 @@
 let convert = require("color-convert");
 let cookie = require("cookie");
 
-String.prototype.hashCode = function() {
+String.prototype.hashCode = function () {
     let hash = 0,
-        i,
-        chr;
+      i,
+      chr;
     if (this.length === 0) return hash;
     for (i = 0; i < this.length; i++) {
         chr = this.charCodeAt(i);
@@ -50,7 +50,6 @@ export function LampToHex(lamp) {
 }
 
 export function SavePreset(lamps, name) {
-    // TODO give ability to name it and provide description
     let id = Math.round(Math.random() * 1000);
     let newPreset = {
         name: name,
@@ -69,10 +68,10 @@ export function LoadPresets() {
 
     function isPreset(p) {
         return (
-            p.hasOwnProperty("name") &&
-            p.hasOwnProperty("description") &&
-            p.hasOwnProperty("lamps") &&
-            p.hasOwnProperty("hash")
+          p.hasOwnProperty("name") &&
+          p.hasOwnProperty("description") &&
+          p.hasOwnProperty("lamps") &&
+          p.hasOwnProperty("hash")
         );
     }
 
@@ -88,16 +87,15 @@ export function LoadPresets() {
 }
 
 export function DeletePreset(preset) {
-    let c = `preset.${preset.hash}=${JSON.stringify(
-        preset
+    document.cookie = `preset.${preset.hash}=${JSON.stringify(
+      preset
     )}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
-    document.cookie = c;
 }
 
 export const testPreset = {
     name: "testPreset",
     description:
-        "A preset showcasing the format of preset objects. If a description is very long, it does something I assume! How long does it have to be before it gets really strange, that is an important question. Maybe a lorem ipsum would make more sense honestly",
+      "A preset showcasing the format of preset objects. If a description is very long, it does something I assume! How long does it have to be before it gets really strange, that is an important question. Maybe a lorem ipsum would make more sense honestly",
     lamps: [
         {
             id: 0,

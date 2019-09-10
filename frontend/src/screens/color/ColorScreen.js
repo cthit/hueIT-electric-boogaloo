@@ -1,8 +1,8 @@
 import React from "react";
 import Grid from "@material-ui/core/Grid";
 import { Container } from "@material-ui/core";
-import LampLayoutComponent from "./LampLayoutComponent";
-import ControlPanelComponent from "./ControlPanelComponent";
+import ControlPanelComponent from "./views/ControlPanelComponent";
+import LampLayoutComponent from "../presets/views/LampLayoutComponent";
 
 export default function ColorScreen(props) {
     return (

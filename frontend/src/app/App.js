@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import Navigation from "./Navigation";
-import * as Backend from "./BackendInterface";
-import SavePresetDialog from "./SavePresetDialog";
+import Navigation from "../common/navigation/Navigation";
+import * as Backend from "../common/BackendInterface";
 
 const N_OF_LAMPS = 8;
 const DEFAULT_COLOR = "#09CCDA";

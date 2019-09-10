@@ -3,8 +3,8 @@ import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import ColorScreen from "./ColorScreen";
-import PresetsScreen from "./PresetsScreen";
+import ColorScreen from "../../screens/color/ColorScreen";
+import PresetsScreen from "../../screens/presets/PresetsScreen";
 
 export default function Navigation(props) {
     const [activeTab, setActiveTab] = useState(0);
