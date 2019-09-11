@@ -1,3 +1,7 @@
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.Key
+import com.natpryce.konfig.intType
+import com.natpryce.konfig.stringType
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.client.HttpClient
@@ -13,15 +17,10 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.json.simple.JSONObject
-import java.io.File
-import java.time.DayOfWeek
-import java.time.LocalDateTime
 import kotlin.collections.set
-import com.natpryce.konfig.*
 
 val client = HttpClient()
 val debug = true
-val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
 
 data class RequestBodyList(
     val requestBodyList: List<RequestBody>
@@ -49,8 +48,8 @@ fun main(args: Array<String>) {
     val hueKey = Key("huebridge.key", stringType)
     val hueIDMap = Key("hueidmap", stringType)
 
-    val mapString : String = config[hueIDMap].toString()
-    val idMap : List<Int?> = mapString.split(", ").map { it.toIntOrNull() }
+    val mapString: String = config[hueIDMap].toString()
+    val idMap: List<Int?> = mapString.split(", ").map { it.toIntOrNull() }
 
     println(idMap)
 
@@ -105,12 +104,8 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
             )
         }
     } else {
-        if (id == null){
+        if (id == null) {
             return "{\"error\": \"Invalid ID.\"}"
-        }
-
-        if (!isAllowedTime()) {
-            return "{\"error\": \"Not allowed to change lights at this time and day.\"}"
         }
 
         val body = JSONObject()
@@ -139,24 +134,6 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
 
         return updateResponse
     }
-}
-
-fun isAllowedTime(): Boolean {
-    if (debug) {
-        return true
-    }
-
-    val dt = LocalDateTime.now()
-
-    if (dt.hour < 8 || dt.hour >= 17) {
-        return true
-    }
-
-    if (dt.dayOfWeek in weekend) {
-        return true
-    }
-
-    return false
 }
 
 suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, id: Int): String {
