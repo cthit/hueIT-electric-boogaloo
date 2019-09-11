@@ -47,6 +47,12 @@ fun main(args: Array<String>) {
     val selfPort = Key("server.port", intType)
     val hueHost = Key("huebridge.host", stringType)
     val hueKey = Key("huebridge.key", stringType)
+    val hueIDMap = Key("hueidmap", stringType)
+
+    val mapString : String = config[hueIDMap].toString()
+    val idMap : List<Int?> = mapString.split(", ").map { it.toIntOrNull() }
+
+    println(idMap)
 
     val baseURL = "http://" + config[hueHost] + "/api/" + config[hueKey] + "/"
 
@@ -61,7 +67,7 @@ fun main(args: Array<String>) {
                 val reqBod = call.receive<RequestBody>()
 
                 call.respondText {
-                    handleRequestBody(reqBod, baseURL)
+                    handleRequestBody(reqBod, baseURL, idMap)
                 }
             }
 
@@ -70,7 +76,7 @@ fun main(args: Array<String>) {
                 val responses = ArrayList<String>()
 
                 reqBods.requestBodyList.forEach {
-                    responses.add(handleRequestBody(it, baseURL))
+                    responses.add(handleRequestBody(it, baseURL, idMap))
                 }
 
                 val responseBody = JSONObject()
@@ -86,16 +92,23 @@ fun main(args: Array<String>) {
     server.start(wait = true)
 }
 
-suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
+suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<Int?>): String {
+    val id: Int? = if (reqBod.isGroup) reqBod.id else idMap[reqBod.id]
+    val groupString: String = if (reqBod.isGroup) "groups" else "lights"
+
     if (reqBod.props == null) {
         return client.get {
             url(
                 baseURL +
-                        (if (reqBod.isGroup) "groups" else "lights") +
-                        (if (reqBod.id >= 0) "/" + reqBod.id else "")
+                        groupString +
+                        (if (id != null && id >= 0) "/$id" else "")
             )
         }
     } else {
+        if (id == null){
+            return "{\"error\": \"Invalid ID.\"}"
+        }
+
         if (!isAllowedTime()) {
             return "{\"error\": \"Not allowed to change lights at this time and day.\"}"
         }
@@ -120,7 +133,7 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String): String {
             body["sat"] = 140
         }
 
-        val updateResponse = statusUpdate(baseURL, body, if (reqBod.isGroup) "groups" else "lights", reqBod.id)
+        val updateResponse = statusUpdate(baseURL, body, groupString, id)
 
         println(updateResponse)
 
