@@ -1,66 +1,99 @@
-class MyJSONObj(var JSONstr: String) {
+class MyJSONObj(inStr: String) {
     val plains = HashMap<String, String>()
     var arrs = HashMap<String, ArrayList<String>>()
     var jsons = HashMap<String, MyJSONObj>()
 
     init {
-        JSONstr = JSONstr.drop(1).dropLast(1)
-        while (JSONstr.length > 0) {
-            JSONstr = JSONstr.drop(1)
-            val endOfKeyInd = JSONstr.indexOf('"')
-            val tempKeyStorage = JSONstr.substring(0, endOfKeyInd)
-            JSONstr = JSONstr.drop(endOfKeyInd + 3)
-            println("Key: $tempKeyStorage")
+        var jsonStr = inStr
+        if (jsonStr.first() == '[') { // TODO: Handle JSONArrays properly
+            jsonStr = jsonStr.drop(1).dropLast(1)
+        }
+        jsonStr = jsonStr.drop(1).dropLast(1)
 
-            val firstValChar = JSONstr.first()
-            when (firstValChar) {
+        while (jsonStr.isNotEmpty()) {
+            jsonStr = jsonStr.drop(1)
+            val endOfKeyInd = jsonStr.indexOf('"')
+            val tempKeyStorage = jsonStr.substring(0, endOfKeyInd)
+            jsonStr = jsonStr.drop(endOfKeyInd + 2)
+
+            while (jsonStr.first() == ' ') {
+                jsonStr = jsonStr.drop(1)
+            }
+
+            when (jsonStr.first()) {
                 '{' -> {
-                    var endOfJSONInd = JSONstr.indexOf('}')
-                    var startOfJSONInd = 0
+                    val endOfJSONInd = endOfNextJSONInd(jsonStr)
 
-                    while (JSONstr.substring(startOfJSONInd + 1).contains('{')) {
-                        startOfJSONInd = JSONstr.indexOf('{', startOfJSONInd + 1)
-                        if (startOfJSONInd > endOfJSONInd) {
-                            break
-                        }
-                        endOfJSONInd = JSONstr.indexOf('}', endOfJSONInd + 1)
-                    }
-
-                    val tempValStorage = MyJSONObj(JSONstr.substring(0, endOfJSONInd + 1))
+                    val JSONChildStr = jsonStr.substring(0, endOfJSONInd + 1)
+                    println(JSONChildStr)
+                    val tempValStorage = MyJSONObj(JSONChildStr)
                     jsons[tempKeyStorage] = tempValStorage
 
-                    JSONstr.drop(endOfJSONInd + 1)
-
-                    println("Payload: $tempValStorage")
+                    jsonStr = jsonStr.drop(endOfJSONInd + 1)
                 }
                 '[' -> {
-                    val endOfArrInd = JSONstr.indexOf(']')
-                    val arrContents = JSONstr.substring(1, endOfArrInd)
+                    val endOfArrInd = jsonStr.indexOf(']')
+                    val arrContents = jsonStr.substring(1, endOfArrInd)
 
                     val tempValStorage = ArrayList<String>(arrContents.split(", ", ","))
                     arrs[tempKeyStorage] = tempValStorage
 
-                    JSONstr = JSONstr.drop(endOfArrInd + 1)
-
-                    println("Payload: $tempValStorage")
+                    jsonStr = jsonStr.drop(endOfArrInd + 1)
                 }
                 else -> {
-                    val endOfValInd = if (JSONstr.contains(',')) JSONstr.indexOf(',') else JSONstr.lastIndex
-                    val tempValStorage = JSONstr.substring(0, endOfValInd)
+                    val endOfValInd = if (jsonStr.contains(',')) jsonStr.indexOf(',') else jsonStr.lastIndex + 1
+                    val tempValStorage = jsonStr.substring(0, endOfValInd)
                     plains[tempKeyStorage] = tempValStorage
 
-                    JSONstr = JSONstr.drop(endOfValInd + 1)
-
-                    println("Payload: $tempValStorage")
+                    jsonStr = jsonStr.drop(endOfValInd + 1)
                 }
             }
 
-            if (JSONstr.contains('"')) {
-                JSONstr = JSONstr.drop(JSONstr.indexOf('"'))
+            if (jsonStr.contains('"')) {
+                jsonStr = jsonStr.drop(jsonStr.indexOf('"'))
                 println()
             } else {
-                JSONstr = ""
+                jsonStr = ""
             }
+        }
+    }
+
+    override fun toString(): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("Plain values:")
+        for (k in plains.keys) {
+            val v = plains[k]
+            stringBuilder.append("\n$k: $v")
+        }
+
+        stringBuilder.append("\nArrays:")
+        for (k in arrs.keys) {
+            val v = arrs[k]
+            stringBuilder.append("\n$k: $v")
+        }
+
+        stringBuilder.append("\nObjects:")
+        for (k in jsons.keys) {
+            val v = jsons[k].toString()
+            stringBuilder.append("\n$k:{\n$v\n}")
+        }
+
+        return stringBuilder.toString()
+    }
+
+    companion object {
+        fun endOfNextJSONInd(jsonStr: String): Int {
+            var endOfJSONInd = jsonStr.indexOf('}')
+            var startOfJSONInd = 0
+
+            while (jsonStr.substring(startOfJSONInd + 1).contains('{')) {
+                startOfJSONInd = jsonStr.indexOf('{', startOfJSONInd + 1)
+                if (startOfJSONInd > endOfJSONInd) {
+                    break
+                }
+                endOfJSONInd = jsonStr.indexOf('}', endOfJSONInd + 1)
+            }
+            return endOfJSONInd
         }
     }
 }

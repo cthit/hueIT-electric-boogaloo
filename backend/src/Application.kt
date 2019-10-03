@@ -17,10 +17,28 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.json.simple.JSONObject
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 val client = HttpClient()
 val debug = true
+
+data class ResponseList(
+    val responses: List<ResponseBody>
+)
+
+data class ResponseBody(
+    val isGroup: Boolean,
+    val id: Int,
+    val updatedProps: RequestBodyProperty?,
+    val failedCalls: List<FailBody>?
+)
+
+// TODO: Make reasonable
+data class FailBody(
+    val placeholder: String?
+)
 
 data class RequestBodyList(
     val requestBodyList: List<RequestBody>
@@ -40,7 +58,9 @@ data class RequestBodyProperty(
     val rst: Boolean?
 )
 
-fun main(args: Array<String>) {
+fun main() {
+//    val myjson = MyJSONObj("{\"test_val\":1,\"test_arr1\":[1,2,3],\"test_arr2\":[1, 2, 3],\"success\":{\"/groups/2/action/on\":false}}")
+
     val config = ConfigurationProperties.fromResource("config.properties")
 
     val selfPort = Key("server.port", intType)
@@ -65,8 +85,11 @@ fun main(args: Array<String>) {
             post("/") {
                 val reqBod = call.receive<RequestBody>()
 
+                val responseJSON = handleRequestBody(reqBod, baseURL, idMap)
+                val parsedJSON = handleResponseJSON(responseJSON, idMap)
+
                 call.respondText {
-                    handleRequestBody(reqBod, baseURL, idMap)
+                    parsedJSON.toString()
                 }
             }
 
@@ -74,21 +97,95 @@ fun main(args: Array<String>) {
                 val reqBods = call.receive<RequestBodyList>()
                 val responses = ArrayList<String>()
 
+                var responseJSON = ""
+
                 reqBods.requestBodyList.forEach {
                     responses.add(handleRequestBody(it, baseURL, idMap))
                 }
 
-                val responseBody = JSONObject()
-                responseBody["responses"] = responses
+                responses.forEach {
+                    if (responses.isEmpty()) {
+                        responseJSON = it
+                    } else {
+                        responseJSON = "${responseJSON.dropLast(1)},${it.drop(1)}"
+                    }
+                }
+
+                val parsedJSON = handleResponseJSON(responseJSON, idMap)
 
                 call.respondText {
-                    responseBody.toString()
+                    parsedJSON.toString()
                 }
             }
         }
     }
 
     server.start(wait = true)
+}
+
+fun handleResponseJSON(responseJSON: String, idMap: List<Int?>): ResponseList {
+    var jsonStr = responseJSON.drop(1).dropLast(1)
+    val jsonList = LinkedList<MyJSONObj>()
+
+    while (jsonStr.isNotEmpty()) {
+        val endOfJSONInd = MyJSONObj.endOfNextJSONInd(jsonStr)
+        jsonList.add(MyJSONObj(jsonStr.substring(0, endOfJSONInd + 1)))
+        jsonStr = jsonStr.drop(endOfJSONInd + 1)
+
+        jsonStr = jsonStr.dropWhile { it != '{' }
+    }
+
+    return translateResponseJSON(jsonList, idMap)
+}
+
+fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): ResponseList {
+    val jsonData = ArrayList<LinkedList<String>>(idMap.size)
+    for (i in 0..idMap.size) {
+        jsonData.add(LinkedList())
+    }
+
+    hueJSONS.forEach {
+        val succ: MyJSONObj? = it.jsons["success"]
+        succ?.plains?.forEach { k, v ->
+            val keyVals = k.split('/')
+            if (keyVals[1] == "lights") {
+                val id = idMap.indexOf(keyVals[2].toInt())
+                if (keyVals[3] == "state") {
+                    val key = keyVals[4]
+                    jsonData[id].add("$key:$v")
+                }
+            }
+        }
+    }
+
+    val responseBodies = LinkedList<ResponseBody>()
+
+    for (i in 0..idMap.size) {
+        if (jsonData[i].isNotEmpty()) {
+            responseBodies.add(assembleResponseJSON(jsonData[i], i))
+        }
+    }
+
+    return ResponseList(responseBodies)
+}
+
+fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
+    val propMap = HashMap<String, String>()
+    attributes.forEach {
+        val pair = it.split(':')
+        propMap[pair[0]] = pair[1]
+    }
+    val hasProps = propMap.isNotEmpty()
+    val props = RequestBodyProperty(
+        propMap["on"]?.toBoolean(),
+        propMap["hue"]?.toDouble(),
+        propMap["sat"]?.toDouble(),
+        propMap["bri"]?.toDouble(),
+        null
+    )
+    val fails = LinkedList<FailBody>()
+    // TODO: Handle failures properly
+    return ResponseBody(false, id, if (hasProps) props else null, if (!fails.isEmpty()) fails else null)
 }
 
 suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<Int?>): String {
