@@ -7,14 +7,14 @@ import ColorScreen from "../../screens/color/ColorScreen";
 import PresetsScreen from "../../screens/presets/PresetsScreen";
 
 export default function Navigation(props) {
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = useState(1); // TODO retain state between sessions (probably a cookie)
 
     function handleChange(event, newValue) {
         setActiveTab(newValue);
     }
 
     return (
-        <React.Fragment>
+        <Box>
             <Paper square elevation={4}>
                 <Tabs
                     value={activeTab}
@@ -33,7 +33,7 @@ export default function Navigation(props) {
             <TabPane value={activeTab} index={1}>
                 <PresetsScreen {...props} />
             </TabPane>
-        </React.Fragment>
+        </Box>
     );
 }
 

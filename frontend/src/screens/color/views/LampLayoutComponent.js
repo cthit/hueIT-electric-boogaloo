@@ -3,7 +3,7 @@ import Grid from "@material-ui/core/Grid";
 import Fab from "@material-ui/core/Fab";
 import { Container } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
-import {ApplyColor, LampToHex} from "../../../common/Util";
+import { ApplyColor, LampToHex } from "../../../common/Util";
 
 export default function LampLayoutComponent(props) {
     const { lamps, setLamps, color, columns } = props;
@@ -15,11 +15,11 @@ export default function LampLayoutComponent(props) {
     }
 
     return (
-        <Container>
+        <Box>
             {rowList.map((row, index) =>
                 MakeRow(row, lamps, setLamps, color, index)
             )}
-        </Container>
+        </Box>
     );
 }
 

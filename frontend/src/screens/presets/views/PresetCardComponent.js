@@ -8,78 +8,100 @@ import CardContent from "@material-ui/core/CardContent";
 import Container from "@material-ui/core/Container";
 import Fab from "@material-ui/core/Fab";
 import DeleteButton from "@material-ui/icons/Delete";
-import {DeletePreset, LampToHex} from "../../../common/Util";
+import { DeletePreset, LampToHex } from "../../../common/Util";
 import IconButton from "@material-ui/core/IconButton";
+import Box from "@material-ui/core/Box";
+import Grid from "@material-ui/core/Grid";
 
 export default function PresetCardComponent(props) {
-    const {preset, setLamps, parentForceUpdate} = props;
+    const { preset, setLamps, parentForceUpdate } = props;
 
     function handleClickApply() {
         setLamps(preset.lamps);
     }
 
     function handleClickDelete() {
-        DeletePreset(preset); // TODO force a render somehow to delete
-        console.log("noja print");
+        // This is a funky solution that forces a rerender when the cookie for the preset is deleted
+        // (as react does not consider cookies a part of the state)
+        DeletePreset(preset);
         parentForceUpdate();
     }
 
     return (
-      <Container maxWidth="md">
-          <Card>
-              <CardActionArea onClick={handleClickApply}>
-                  <CardContent>
-                      <Typography
-                        gutterBottom
-                        variant="h5"
-                        component="h2"
-                        onClick={() => handleClickApply()}
-                      >
-                          {preset.name}
-                      </Typography>
-                      <GhettoPreview {...props} />
-                  </CardContent>
-              </CardActionArea>
-              <CardActions
-                style={{display: "flex", justifyContent: "space-between"}}
-              >
-                  <Button
-                    size="medium"
-                    color="primary"
-                    onClick={handleClickApply}
-                  >
-                      Apply
-                  </Button>
-                  <IconButton
-                    size="medium"
-                    color="secondary"
-                    onClick={handleClickDelete}
-                  >
-                      <DeleteButton/>
-                  </IconButton>
-              </CardActions>
-          </Card>
-      </Container>
+        <Container>
+            <Card>
+                <CardActionArea onClick={handleClickApply}>
+                    <CardContent>
+                        <Typography
+                            gutterBottom
+                            variant="h5"
+                            component="h2"
+                            onClick={() => handleClickApply()}
+                        >
+                            {preset.name}
+                        </Typography>
+                        <LampComponent col={4} row={2} {...props} />
+                    </CardContent>
+                </CardActionArea>
+                <CardActions
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                    <Button
+                        size="medium"
+                        color="primary"
+                        onClick={handleClickApply}
+                    >
+                        Apply
+                    </Button>
+                    <IconButton
+                        size="medium"
+                        color="secondary"
+                        onClick={handleClickDelete}
+                    >
+                        <DeleteButton />
+                    </IconButton>
+                </CardActions>
+            </Card>
+        </Container>
     );
 }
 
-function GhettoPreview(props) {
-    const {preset} = props;
+function LampComponent(props) {
+    const { preset, col, row } = props;
 
-    return (
-      <Container>
-          {preset.lamps.map((lamp, index) => {
-              return (
-                <Fab
-                  style={{
-                      backgroundColor: `#${LampToHex(lamp)}`,
-                  }}
-                  key={index}
-                  disabled={true}
-                  children=""
-                />
-              );
-          })}
-      </Container>
-    );
+    const lamps = preset.lamps;
+
+    const indexList = [];
+    for (let i = 0; i < row; i++) indexList.push([]);
+
+    lamps.forEach((lamp, index) => indexList[index % row].push(index));
+
+    let content = indexList.map((row, i) => {
+        return (
+            <Container>
+                <Grid container key={i} spacing={2}>
+                    {row.map(idx => {
+                        return (
+                            <Grid item key={idx}>
+                                <Fab
+                                    style={{
+                                        backgroundColor: `#${LampToHex(
+                                            lamps[idx]
+                                        )}`,
+                                    }}
+                                    key={idx}
+                                    disabled={true}
+                                    children=""
+                                />
+                            </Grid>
+                        );
+                    })}
+                </Grid>
+            </Container>
+        );
+    });
+
+    console.log(content);
+
+    return content;
 }
