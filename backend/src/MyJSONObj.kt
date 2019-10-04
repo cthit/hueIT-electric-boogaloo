@@ -25,7 +25,6 @@ class MyJSONObj(inStr: String) {
                     val endOfJSONInd = endOfNextJSONInd(jsonStr)
 
                     val JSONChildStr = jsonStr.substring(0, endOfJSONInd + 1)
-                    println(JSONChildStr)
                     val tempValStorage = MyJSONObj(JSONChildStr)
                     jsons[tempKeyStorage] = tempValStorage
 
@@ -40,6 +39,14 @@ class MyJSONObj(inStr: String) {
 
                     jsonStr = jsonStr.drop(endOfArrInd + 1)
                 }
+                '"' -> {
+                    jsonStr = jsonStr.drop(1)
+                    val endOfValInd = jsonStr.indexOf('"')
+                    val tempValStorage = jsonStr.substring(0, endOfValInd)
+                    plains[tempKeyStorage] = tempValStorage
+
+                    jsonStr = jsonStr.drop(endOfValInd + 2)
+                }
                 else -> {
                     val endOfValInd = if (jsonStr.contains(',')) jsonStr.indexOf(',') else jsonStr.lastIndex + 1
                     val tempValStorage = jsonStr.substring(0, endOfValInd)
@@ -49,10 +56,8 @@ class MyJSONObj(inStr: String) {
                 }
             }
 
-            if (jsonStr.contains('"')) {
-                jsonStr = jsonStr.drop(jsonStr.indexOf('"'))
-                println()
-            } else {
+            jsonStr = jsonStr.dropWhile { it != '"' }
+            if (!jsonStr.contains('"')) {
                 jsonStr = ""
             }
         }

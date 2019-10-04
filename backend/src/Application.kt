@@ -22,22 +22,24 @@ import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 val client = HttpClient()
-val debug = true
+val debug = false
 
 data class ResponseList(
-    val responses: List<ResponseBody>
+    val responses: List<ResponseBody>,
+    val errors: List<ErrorBody>?
 )
 
 data class ResponseBody(
     val isGroup: Boolean,
     val id: Int,
-    val updatedProps: RequestBodyProperty?,
-    val failedCalls: List<FailBody>?
+    val updatedProps: RequestBodyProperty?
 )
 
-// TODO: Make reasonable
-data class FailBody(
-    val placeholder: String?
+data class ErrorBody(
+    val type: Int,
+    val isGroup: Boolean,
+    val id: Int,
+    val description: String
 )
 
 data class RequestBodyList(
@@ -85,11 +87,19 @@ fun main() {
             post("/") {
                 val reqBod = call.receive<RequestBody>()
 
-                val responseJSON = handleRequestBody(reqBod, baseURL, idMap)
-                val parsedJSON = handleResponseJSON(responseJSON, idMap)
+                try {
+                    val responseJSON = handleRequestBody(reqBod, baseURL, idMap)
+                    val parsedJSON = handleResponseJSON(responseJSON, idMap)
 
-                call.respondText {
-                    parsedJSON.toString()
+                    call.respondText {
+                        parsedJSON.toString()
+                    }
+                } catch (e: Exception) {
+                    println(e.toString())
+
+                    call.respondText {
+                        e.toString()
+                    }
                 }
             }
 
@@ -99,23 +109,32 @@ fun main() {
 
                 var responseJSON = ""
 
-                reqBods.requestBodyList.forEach {
-                    responses.add(handleRequestBody(it, baseURL, idMap))
-                }
+                try {
+                    reqBods.requestBodyList.forEach {
+                        responses.add(handleRequestBody(it, baseURL, idMap))
+                    }
 
-                responses.forEach {
-                    if (responses.isEmpty()) {
-                        responseJSON = it
-                    } else {
-                        responseJSON = "${responseJSON.dropLast(1)},${it.drop(1)}"
+                    responses.forEach {
+                        if (responses.isEmpty()) {
+                            responseJSON = it
+                        } else {
+                            responseJSON = "${responseJSON.dropLast(1)},${it.drop(1)}"
+                        }
+                    }
+
+                    val parsedJSON = handleResponseJSON(responseJSON, idMap)
+
+                    call.respondText {
+                        parsedJSON.toString()
+                    }
+                } catch (e: Exception) {
+                    println(e.toString())
+
+                    call.respondText {
+                        e.toString()
                     }
                 }
 
-                val parsedJSON = handleResponseJSON(responseJSON, idMap)
-
-                call.respondText {
-                    parsedJSON.toString()
-                }
             }
         }
     }
@@ -139,10 +158,12 @@ fun handleResponseJSON(responseJSON: String, idMap: List<Int?>): ResponseList {
 }
 
 fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): ResponseList {
-    val jsonData = ArrayList<LinkedList<String>>(idMap.size)
+    val jsonSucc = ArrayList<LinkedList<String>>(idMap.size)
     for (i in 0..idMap.size) {
-        jsonData.add(LinkedList())
+        jsonSucc.add(LinkedList())
     }
+
+    val errors = LinkedList<ErrorBody>()
 
     hueJSONS.forEach {
         val succ: MyJSONObj? = it.jsons["success"]
@@ -152,21 +173,33 @@ fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): Respons
                 val id = idMap.indexOf(keyVals[2].toInt())
                 if (keyVals[3] == "state") {
                     val key = keyVals[4]
-                    jsonData[id].add("$key:$v")
+                    jsonSucc[id].add("$key:$v")
                 }
             }
+        }
+
+        val error: MyJSONObj? = it.jsons["error"]
+        if (error != null) {
+            val plains = error.plains
+            errors.add(
+                assembleErrorJSON(
+                    plains["type"]!!.toInt(),
+                    plains["address"]!!,
+                    plains["description"]!!
+                )
+            )
         }
     }
 
     val responseBodies = LinkedList<ResponseBody>()
 
     for (i in 0..idMap.size) {
-        if (jsonData[i].isNotEmpty()) {
-            responseBodies.add(assembleResponseJSON(jsonData[i], i))
+        if (jsonSucc[i].isNotEmpty()) {
+            responseBodies.add(assembleResponseJSON(jsonSucc[i], i))
         }
     }
 
-    return ResponseList(responseBodies)
+    return ResponseList(responseBodies, if (!errors.isEmpty()) errors else null)
 }
 
 fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
@@ -183,9 +216,14 @@ fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
         propMap["bri"]?.toDouble(),
         null
     )
-    val fails = LinkedList<FailBody>()
-    // TODO: Handle failures properly
-    return ResponseBody(false, id, if (hasProps) props else null, if (!fails.isEmpty()) fails else null)
+    return ResponseBody(false, id, if (hasProps) props else null)
+}
+
+fun assembleErrorJSON(type: Int, address: String, description: String): ErrorBody {
+    val addressParts = address.split('/')
+    val isGroup: Boolean = addressParts[1] == "groups"
+    val id: Int = addressParts[2].toInt()
+    return ErrorBody(type, isGroup, id, description)
 }
 
 suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<Int?>): String {
@@ -226,8 +264,6 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
         }
 
         val updateResponse = statusUpdate(baseURL, body, groupString, id)
-
-        println(updateResponse)
 
         return updateResponse
     }
