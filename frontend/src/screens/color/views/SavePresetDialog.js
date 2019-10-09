@@ -7,6 +7,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { SavePreset } from "../../../common/Util";
+import { Box } from "@material-ui/core";
 
 export default function SavePresetDialog(props) {
     const { lamps, open, setOpen } = props;
@@ -14,19 +15,28 @@ export default function SavePresetDialog(props) {
     const [name, setName] = React.useState("");
 
     function handleClose() {
-        console.log(setOpen);
         setOpen(false);
     }
 
+    console.log(open);
+
     return (
-        <div>
+        <Box>
             <Dialog
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="form-dialog-title"
             >
                 <DialogTitle id="form-dialog-title">Save preset</DialogTitle>
-                <DialogContent>
+                <DialogContent
+                    onKeyDown={e => {
+                        if (e.key === "Enter") {
+                            SavePreset(lamps, name);
+                            handleClose();
+                            e.preventDefault();
+                        }
+                    }}
+                >
                     <DialogContentText>
                         Enter a name for your preset. Once saved, it can be
                         found in the 'Presets' tab.
@@ -61,6 +71,6 @@ export default function SavePresetDialog(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
+        </Box>
     );
 }

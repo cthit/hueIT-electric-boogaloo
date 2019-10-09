@@ -10,7 +10,6 @@ import Fab from "@material-ui/core/Fab";
 import DeleteButton from "@material-ui/icons/Delete";
 import { DeletePreset, LampToHex } from "../../../common/Util";
 import IconButton from "@material-ui/core/IconButton";
-import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
 
 export default function PresetCardComponent(props) {
@@ -76,7 +75,7 @@ function LampComponent(props) {
 
     lamps.forEach((lamp, index) => indexList[index % row].push(index));
 
-    let content = indexList.map((row, i) => {
+    return indexList.map((row, i) => {
         return (
             <Container>
                 <Grid container key={i} spacing={2}>
@@ -100,8 +99,4 @@ function LampComponent(props) {
             </Container>
         );
     });
-
-    console.log(content);
-
-    return content;
 }

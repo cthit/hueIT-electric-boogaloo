@@ -35,6 +35,7 @@ export default function ControlPanelComponent(props) {
                 </Container>
             </Grid>
             <Box component="span" />
+
             <Grid
                 container
                 alignItems={"center"}
@@ -51,6 +52,16 @@ export default function ControlPanelComponent(props) {
                     </IconButton>
                 </Grid>
                 <Grid item>
+                    <IconButton
+                        color="primary"
+                        onClick={() => {
+                            setOpenDialog(true);
+                        }}
+                    >
+                        <SaveIcon />
+                    </IconButton>
+                </Grid>
+                <Grid item>
                     <Button
                         variant="contained"
                         color="primary"
@@ -60,16 +71,6 @@ export default function ControlPanelComponent(props) {
                     >
                         Apply to All
                     </Button>
-                </Grid>
-                <Grid item>
-                    <IconButton
-                        color="primary"
-                        onClick={() => {
-                            setOpenDialog(true);
-                        }}
-                    >
-                        <SaveIcon />
-                    </IconButton>
                 </Grid>
             </Grid>
         </Paper>

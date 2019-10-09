@@ -27,7 +27,7 @@ export default function PresetsScreen(props) {
         </Grid>
     ) : (
         <Container>
-            <Typography>
+            <Typography variant={"h4"}>
                 No presets here! You can make and save them in the customize
                 tab.
             </Typography>
