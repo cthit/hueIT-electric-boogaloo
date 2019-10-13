@@ -62,7 +62,7 @@ data class RequestBodyProperty(
     val rst: Boolean?
 )
 
-fun main() {
+fun startServer() {
 //    val myjson = MyJSONObj("{\"test_val\":1,\"test_arr1\":[1,2,3],\"test_arr2\":[1, 2, 3],\"success\":{\"/groups/2/action/on\":false}}")
 
     val config = ConfigurationProperties.fromResource("config.properties")
