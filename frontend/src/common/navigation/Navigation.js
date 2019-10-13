@@ -7,7 +7,7 @@ import ColorScreen from "../../screens/color/ColorScreen";
 import PresetsScreen from "../../screens/presets/PresetsScreen";
 
 export default function Navigation(props) {
-    const [activeTab, setActiveTab] = useState(0); // TODO retain state between sessions
+    const [activeTab, setActiveTab] = useState(1); // TODO retain state between sessions
 
     function handleChange(event, newValue) {
         setActiveTab(newValue);
