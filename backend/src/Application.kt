@@ -8,7 +8,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.url
+import io.ktor.features.CORS
 import io.ktor.features.ContentNegotiation
+import io.ktor.http.HttpMethod
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
 import io.ktor.response.respondText
@@ -80,9 +82,16 @@ fun main() {
     val baseURL = "http://" + config[hueHost] + "/api/" + config[hueKey] + "/"
 
     val server = embeddedServer(Netty, port = config[selfPort]) {
+        // Used for translating JSON-objects from frontend to data classes that Kotlin can understand.
         install(ContentNegotiation) {
             jackson {
             }
+        }
+
+        // Allows any host to use the backend with POST-requests.
+        install(CORS){
+            method(HttpMethod.Post)
+            anyHost()
         }
 
         routing {
