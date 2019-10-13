@@ -75,7 +75,7 @@ export function LoadPresets() {
         );
     }
 
-    for (const c in cookies) {
+    for (let c in cookies) {
         try {
             let p = JSON.parse(cookies[c]);
             if (isPreset(p)) presets.push(p);

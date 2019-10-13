@@ -3,6 +3,9 @@ import { testPreset } from "./Util";
 
 let url = "http://localhost:8080/list";
 
+// general methods for interacting with the backend
+
+// Send a request to the backend to set the state of the lamps
 export function Post(lamps) {
     let bodyList = [];
 
@@ -32,6 +35,7 @@ export function Post(lamps) {
         });
 }
 
+// Send a get request and return the current state of the lamps
 export function Get() {
     console.warn("Get unimplemented");
     return testPreset.lamps;

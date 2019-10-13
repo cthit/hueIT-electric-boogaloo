@@ -13,6 +13,7 @@ export default function App(props) {
     const [lamps, setLamps] = useState(DefaultState(N_OF_LAMPS));
     const [color, setColor] = useState(DEFAULT_COLOR);
 
+    // refs used to get information about previous state (or if any at all)
     const didUndo = useRef(false);
     const didMountRef = useRef(false);
     const prevLamps = useRef([]);

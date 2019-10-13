@@ -1,7 +1,6 @@
 import React from "react";
 import Grid from "@material-ui/core/Grid";
 import Fab from "@material-ui/core/Fab";
-import { Container } from "@material-ui/core";
 import Box from "@material-ui/core/Box";
 import { ApplyColor, LampToHex } from "../../../common/Util";
 
@@ -24,7 +23,7 @@ export default function LampLayoutComponent(props) {
 }
 
 function MakeRow(lampsInRow, lamps, setLamps, color, index = 0) {
-    let list = lampsInRow.map((lamp, index) => {
+    let list = lampsInRow.map(lamp => {
         return (
             <Box key={lamp.id} style={{ padding: "10px" }}>
                 <Fab

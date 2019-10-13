@@ -35,7 +35,6 @@ export default function ControlPanelComponent(props) {
                 </Container>
             </Grid>
             <Box component="span" />
-
             <Grid
                 container
                 alignItems={"center"}
