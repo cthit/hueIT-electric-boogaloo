@@ -6,7 +6,6 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Container from "@material-ui/core/Container";
-import Fab from "@material-ui/core/Fab";
 import DeleteButton from "@material-ui/icons/Delete";
 import { DeletePreset, LampToHex } from "../../../common/Util";
 import IconButton from "@material-ui/core/IconButton";
