@@ -6,11 +6,11 @@ import CardActionArea from "@material-ui/core/CardActionArea";
 import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Container from "@material-ui/core/Container";
-import Fab from "@material-ui/core/Fab";
 import DeleteButton from "@material-ui/icons/Delete";
 import { DeletePreset, LampToHex } from "../../../common/Util";
 import IconButton from "@material-ui/core/IconButton";
 import Grid from "@material-ui/core/Grid";
+import Box from "@material-ui/core/Box";
 
 export default function PresetCardComponent(props) {
     const { preset, setLamps, parentForceUpdate } = props;
@@ -75,6 +75,11 @@ function LampComponent(props) {
 
     lamps.forEach((lamp, index) => indexList[index % row].push(index));
 
+    let lampWidth = "60px";
+    if(window.screen.availWidth<800){
+        lampWidth = window.screen.availWidth*0.1;
+    }
+
     return indexList.map((row, i) => {
         return (
             <Container>
@@ -82,11 +87,14 @@ function LampComponent(props) {
                     {row.map(idx => {
                         return (
                             <Grid item key={idx}>
-                                <Fab
+                                <Box
                                     style={{
                                         backgroundColor: `#${LampToHex(
                                             lamps[idx]
                                         )}`,
+                                        width:lampWidth,
+                                        paddingTop:"100%",
+                                        borderRadius:"100%",
                                     }}
                                     key={idx}
                                     disabled={true}
