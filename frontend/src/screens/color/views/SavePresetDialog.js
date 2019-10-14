@@ -18,8 +18,6 @@ export default function SavePresetDialog(props) {
         setOpen(false);
     }
 
-    console.log(open);
-
     return (
         <Box>
             <Dialog
