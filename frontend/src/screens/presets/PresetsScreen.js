@@ -14,7 +14,7 @@ export default function PresetsScreen(props) {
     let presets = DefaultPresets().concat(LoadPresets());
 
     return presets.length > 0 ? (
-        <Grid container spacing={3} style={{margin:"0px"}}>
+        <Grid container spacing={3} style={{ margin: "0px" }}>
             {presets.map((p, index) => (
                 <Grid item key={index}>
                     <PresetCardComponent
