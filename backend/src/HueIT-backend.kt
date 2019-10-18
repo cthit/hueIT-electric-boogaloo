@@ -62,7 +62,7 @@ data class RequestBodyProperty(
     val rst: Boolean?
 )
 
-fun startServer() {
+fun startServer(hueKey: String) {
 //    val myjson = MyJSONObj("{\"test_val\":1,\"test_arr1\":[1,2,3],\"test_arr2\":[1, 2, 3],\"success\":{\"/groups/2/action/on\":false}}")
 
     val config = ConfigurationProperties.fromResource("config.properties")
@@ -70,7 +70,6 @@ fun startServer() {
     // Fetch config values
     val selfPort = Key("server.port", intType)
     val hueHost = Key("huebridge.host", stringType)
-    val hueKey = Key("huebridge.key", stringType)
     val hueIDMap = Key("hueidmap", stringType)
 
     // Fetch and parse list that converts frontend ids to hue ids for lamps.
@@ -79,7 +78,7 @@ fun startServer() {
 
     println(idMap)
 
-    val baseURL = "http://" + config[hueHost] + "/api/" + config[hueKey] + "/"
+    val baseURL = "http://" + config[hueHost] + "/api/" + hueKey + "/"
 
     val server = embeddedServer(Netty, port = config[selfPort]) {
         // Used for translating JSON-objects from frontend to data classes that Kotlin can understand.
@@ -89,7 +88,7 @@ fun startServer() {
         }
 
         // Allows any host to use the backend with POST-requests.
-        install(CORS){
+        install(CORS) {
             method(HttpMethod.Post)
             anyHost()
         }
@@ -99,9 +98,13 @@ fun startServer() {
             post("/") {
                 val reqBod = call.receive<RequestBody>()
 
+                println(reqBod.toString())
+
                 try {
                     val responseJSON = handleRequestBody(reqBod, baseURL, idMap)
                     val parsedJSON = handleResponseJSON(responseJSON, idMap)
+
+                    println(parsedJSON.toString())
 
                     call.respondText {
                         parsedJSON.toString()
@@ -120,6 +123,8 @@ fun startServer() {
                 val reqBods = call.receive<RequestBodyList>()
                 val responses = ArrayList<String>()
 
+                println(reqBods.toString())
+
                 var responseJSON = ""
 
                 try {
@@ -134,6 +139,8 @@ fun startServer() {
                     }
 
                     val parsedJSON = handleResponseJSON(responseJSON, idMap)
+
+                    println(parsedJSON.toString())
 
                     call.respondText {
                         parsedJSON.toString()

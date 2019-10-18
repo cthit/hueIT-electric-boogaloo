@@ -10,4 +10,4 @@ FROM openjdk:13-oraclelinux7
 COPY --from=BUILD /home/gradle/src/build/libs/HueIT-backend.jar /bin/runner/run.jar
 WORKDIR /bin/runner
 
-CMD ["java","-jar","run.jar"]
+ENTRYPOINT ["java","-jar","run.jar"]
