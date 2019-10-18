@@ -9,6 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.url
 import io.ktor.features.CORS
+import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.http.HttpMethod
 import io.ktor.jackson.jackson
@@ -19,6 +20,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import org.json.simple.JSONObject
+import org.slf4j.event.Level
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.set
@@ -27,39 +29,39 @@ val client = HttpClient()
 val debug = false
 
 data class ResponseList(
-    val responses: List<ResponseBody>,
-    val errors: List<ErrorBody>?
+        val responses: List<ResponseBody>,
+        val errors: List<ErrorBody>?
 )
 
 data class ResponseBody(
-    val isGroup: Boolean,
-    val id: Int,
-    val updatedProps: RequestBodyProperty?
+        val isGroup: Boolean,
+        val id: Int,
+        val updatedProps: RequestBodyProperty?
 )
 
 data class ErrorBody(
-    val type: Int,
-    val isGroup: Boolean,
-    val id: Int,
-    val description: String
+        val type: Int,
+        val isGroup: Boolean,
+        val id: Int,
+        val description: String
 )
 
 data class RequestBodyList(
-    val requestBodyList: List<RequestBody>
+        val requestBodyList: List<RequestBody>
 )
 
 data class RequestBody(
-    val isGroup: Boolean,
-    val id: Int,
-    val props: RequestBodyProperty?
+        val isGroup: Boolean,
+        val id: Int,
+        val props: RequestBodyProperty?
 )
 
 data class RequestBodyProperty(
-    val pwr: Boolean?,
-    val hue: Double?,
-    val sat: Double?,
-    val bri: Double?,
-    val rst: Boolean?
+        val pwr: Boolean?,
+        val hue: Double?,
+        val sat: Double?,
+        val bri: Double?,
+        val rst: Boolean?
 )
 
 fun startServer(hueKey: String) {
@@ -91,6 +93,10 @@ fun startServer(hueKey: String) {
         install(CORS) {
             method(HttpMethod.Post)
             anyHost()
+        }
+
+        install(CallLogging) {
+            level = Level.INFO
         }
 
         routing {
@@ -209,11 +215,11 @@ fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): Respons
         if (error != null) {
             val plains = error.plains
             errors.add(
-                assembleErrorJSON(
-                    plains["type"]!!.toInt(),
-                    plains["address"]!!,
-                    plains["description"]!!
-                )
+                    assembleErrorJSON(
+                            plains["type"]!!.toInt(),
+                            plains["address"]!!,
+                            plains["description"]!!
+                    )
             )
         }
     }
@@ -244,11 +250,11 @@ fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
     // Assemble RequestBodyProperty from the previously created HashMap.
     // Any keys with no values in the map set their respective property in the data class to null.
     val props = RequestBodyProperty(
-        propMap["on"]?.toBoolean(),
-        propMap["hue"]?.toDouble(),
-        propMap["sat"]?.toDouble(),
-        propMap["bri"]?.toDouble(),
-        null
+            propMap["on"]?.toBoolean(),
+            propMap["hue"]?.toDouble(),
+            propMap["sat"]?.toDouble(),
+            propMap["bri"]?.toDouble(),
+            null
     )
 
     // Assembles and returns the ResponseBody. If the HashMap is empty the RequestBodyProperty is replaced with null.
@@ -270,9 +276,9 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
         // Get the status of the given group(s) or lamp(s) if the RequestBody does not have any properties.
         return client.get {
             url(
-                baseURL +
-                        groupString +
-                        (if (id != null && id >= 0) "/$id" else "")
+                    baseURL +
+                            groupString +
+                            (if (id != null && id >= 0) "/$id" else "")
             )
         }
     } else {
