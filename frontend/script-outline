@@ -1,0 +1,21 @@
+define main #09CCDA
+define off  #1111AA
+define bleh #FA6607
+
+loop 1
+    set 2468 off
+    set 1357 main
+    wait 5
+    set 1357 off
+    set 2468 main
+    wait 5
+
+loop 2
+    fade 18 bleh 3
+    wait 10
+    fade 27 bleh 3
+    wait 10
+    fade 36 bleh 3
+    wait 10
+    fade 45 bleh 3
+    wait 10

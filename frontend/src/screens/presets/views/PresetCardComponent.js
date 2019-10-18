@@ -76,8 +76,8 @@ function LampComponent(props) {
     lamps.forEach((lamp, index) => indexList[index % row].push(index));
 
     let lampWidth = "60px";
-    if(window.screen.availWidth<800){
-        lampWidth = window.screen.availWidth*0.1;
+    if (window.screen.availWidth < 800) {
+        lampWidth = window.screen.availWidth * 0.1;
     }
 
     return indexList.map((row, i) => {
@@ -92,9 +92,9 @@ function LampComponent(props) {
                                         backgroundColor: `#${LampToHex(
                                             lamps[idx]
                                         )}`,
-                                        width:lampWidth,
-                                        paddingTop:"100%",
-                                        borderRadius:"100%",
+                                        width: lampWidth,
+                                        paddingTop: "100%",
+                                        borderRadius: "100%",
                                     }}
                                     key={idx}
                                     disabled={true}
