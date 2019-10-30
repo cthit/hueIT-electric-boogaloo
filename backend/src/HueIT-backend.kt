@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.intType
@@ -29,44 +31,42 @@ val client = HttpClient()
 val debug = false
 
 data class ResponseList(
-        val responses: List<ResponseBody>,
-        val errors: List<ErrorBody>?
+    val responses: List<ResponseBody>,
+    val errors: List<ErrorBody>?
 )
 
 data class ResponseBody(
-        val isGroup: Boolean,
-        val id: Int,
-        val updatedProps: RequestBodyProperty?
+    val isGroup: Boolean,
+    val id: Int,
+    val updatedProps: RequestBodyProperty?
 )
 
 data class ErrorBody(
-        val type: Int,
-        val isGroup: Boolean,
-        val id: Int,
-        val description: String
+    val type: Int,
+    val isGroup: Boolean,
+    val id: Int,
+    val description: String
 )
 
 data class RequestBodyList(
-        val requestBodyList: List<RequestBody>
+    val requestBodyList: List<RequestBody>
 )
 
 data class RequestBody(
-        val isGroup: Boolean,
-        val id: Int,
-        val props: RequestBodyProperty?
+    val isGroup: Boolean,
+    val id: Int,
+    val props: RequestBodyProperty?
 )
 
 data class RequestBodyProperty(
-        val pwr: Boolean?,
-        val hue: Double?,
-        val sat: Double?,
-        val bri: Double?,
-        val rst: Boolean?
+    val pwr: Boolean?,
+    val hue: Double?,
+    val sat: Double?,
+    val bri: Double?,
+    val rst: Boolean?
 )
 
 fun startServer(hueKey: String) {
-//    val myjson = MyJSONObj("{\"test_val\":1,\"test_arr1\":[1,2,3],\"test_arr2\":[1, 2, 3],\"success\":{\"/groups/2/action/on\":false}}")
-
     val config = ConfigurationProperties.fromResource("config.properties")
 
     // Fetch config values
@@ -131,20 +131,13 @@ fun startServer(hueKey: String) {
 
                 println(reqBods.toString())
 
-                var responseJSON = ""
-
                 try {
                     // Handle all requests and put the responses in a list.
                     reqBods.requestBodyList.forEach {
                         responses.add(handleRequestBody(it, baseURL, idMap))
                     }
 
-                    // Merge all response JSON-objects into one.
-                    responses.forEach {
-                        responseJSON = if (responses.isEmpty()) it else "${responseJSON.dropLast(1)},${it.drop(1)}"
-                    }
-
-                    val parsedJSON = handleResponseJSON(responseJSON, idMap)
+                    val parsedJSON = handleResponseJSON(responses, idMap)
 
                     println(parsedJSON.toString())
 
@@ -167,25 +160,33 @@ fun startServer(hueKey: String) {
 }
 
 fun handleResponseJSON(responseJSON: String, idMap: List<Int?>): ResponseList {
-    // Remove wrapping square brackets from JSON-array-string.
-    var jsonStr = responseJSON.drop(1).dropLast(1)
+    val passList = LinkedList<String>()
+    passList.add(responseJSON)
+    return handleResponseJSON(passList, idMap)
+}
 
-    val jsonList = LinkedList<MyJSONObj>()
+fun handleResponseJSON(responseJSONs: List<String>, idMap: List<Int?>): ResponseList {
+    val mapper = ObjectMapper()
+    val jsonList = LinkedList<JsonNode>()
 
-    // Sends all found JSON-objects to the parser and then appends the returned object to a list.
-    while (jsonStr.isNotEmpty()) {
-        val endOfJSONInd = MyJSONObj.endOfNextJSONInd(jsonStr)
-        jsonList.add(MyJSONObj(jsonStr.substring(0, endOfJSONInd + 1)))
-        jsonStr = jsonStr.drop(endOfJSONInd + 1)
-
-        jsonStr = jsonStr.dropWhile { it != '{' }
+    responseJSONs.forEach {
+        val responseObj = mapper.readTree(it)
+        println("Full JSON: ${responseObj}")
+        if (responseObj.isArray) {
+            for (i in 0 until responseObj.size()) {
+                println("Index $i: ${responseObj.get(i)}")
+                jsonList.add(responseObj.get(i))
+            }
+        } else {
+            jsonList.add(responseObj)
+        }
     }
 
     // Translate the parsed JSON-objects into something more readable and then return them.
     return translateResponseJSON(jsonList, idMap)
 }
 
-fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): ResponseList {
+fun translateResponseJSON(hueJSONS: List<JsonNode>, idMap: List<Int?>): ResponseList {
     // Create one list for each lamp that is defined by idMap.
     // These lists will hold the successfully executed requests for their respective lamp.
     val jsonSucc = ArrayList<LinkedList<String>>(idMap.size)
@@ -195,31 +196,27 @@ fun translateResponseJSON(hueJSONS: List<MyJSONObj>, idMap: List<Int?>): Respons
 
     val errors = LinkedList<ErrorBody>()
 
+    println()
     hueJSONS.forEach {
-        val succ: MyJSONObj? = it.jsons["success"]
-        // Extract and store the keys and values for each successfully executed request and store them in their
-        // corresponding lists.
-        succ?.plains?.forEach { k, v ->
-            val keyVals = k.split('/')
-            if (keyVals[1] == "lights") {
-                val id = idMap.indexOf(keyVals[2].toInt())
-                if (keyVals[3] == "state") {
-                    val key = keyVals[4]
-                    jsonSucc[id].add("$key:$v")
-                }
-            }
+        val succ = it.get("success")
+        succ?.fields()?.forEach {
+            val key = it.key
+            val value = it.value.asText()
+
+            println("Key: $key")
+
+            val splitKey = key.split('/')
+            val id = idMap.indexOf(splitKey[2].toInt())
+
+            jsonSucc[id].add("${splitKey[4]}:$value")
         }
 
-        val error: MyJSONObj? = it.jsons["error"]
-        // Create ErrorBodies for each error and store them.
+        val error = it.get("error")
         if (error != null) {
-            val plains = error.plains
-            errors.add(
-                    assembleErrorJSON(
-                            plains["type"]!!.toInt(),
-                            plains["address"]!!,
-                            plains["description"]!!
-                    )
+            assembleErrorJSON(
+                error.get("type").asInt(),
+                error.get("address").asText(),
+                error.get("description").asText()
             )
         }
     }
@@ -250,11 +247,11 @@ fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
     // Assemble RequestBodyProperty from the previously created HashMap.
     // Any keys with no values in the map set their respective property in the data class to null.
     val props = RequestBodyProperty(
-            propMap["on"]?.toBoolean(),
-            propMap["hue"]?.toDouble(),
-            propMap["sat"]?.toDouble(),
-            propMap["bri"]?.toDouble(),
-            null
+        propMap["on"]?.toBoolean(),
+        propMap["hue"]?.toDouble(),
+        propMap["sat"]?.toDouble(),
+        propMap["bri"]?.toDouble(),
+        null
     )
 
     // Assembles and returns the ResponseBody. If the HashMap is empty the RequestBodyProperty is replaced with null.
@@ -276,9 +273,9 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
         // Get the status of the given group(s) or lamp(s) if the RequestBody does not have any properties.
         return client.get {
             url(
-                    baseURL +
-                            groupString +
-                            (if (id != null && id >= 0) "/$id" else "")
+                baseURL +
+                        groupString +
+                        (if (id != null && id >= 0) "/$id" else "")
             )
         }
     } else {
