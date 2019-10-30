@@ -31,6 +31,9 @@ import kotlin.collections.set
 val client = HttpClient()
 val mapper = ObjectMapper()
 const val debug = false
+const val hueConst: Double = 65535.0 / 360
+const val satConst: Double = 254.0 / 100
+const val briConst: Double = 254.0 / 100
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ResponseList(
@@ -70,6 +73,14 @@ data class RequestBodyProperty(
     val sat: Double?,
     val bri: Double?,
     val rst: Boolean?
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class HueRequestBody(
+    val on: Boolean?,
+    val hue: Int?,
+    val sat: Int?,
+    val bri: Int?
 )
 
 fun startServer(hueKey: String) {
@@ -288,32 +299,49 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
             return "{\"error\": \"Invalid ID.\"}"
         }
 
-        val body = JSONObject()
+        val props: RequestBodyProperty = reqBod.props
 
-        // Assemble a JSON-object with all requested field and correctly scaled values.
-        if (reqBod.props.pwr != null) {
-            body["on"] = reqBod.props.pwr
+        val body: HueRequestBody = if (props.rst != null && props.rst) {
+            HueRequestBody(
+                props.pwr,
+                8418,
+                140,
+                254
+            )
+        } else {
+            HueRequestBody(
+                props.pwr,
+                (props.hue?.times(hueConst))?.toInt(),
+                (props.sat?.times(satConst))?.toInt(),
+                (props.bri?.times(briConst))?.toInt()
+            )
         }
-        if (reqBod.props.hue != null) {
-            body["hue"] = (reqBod.props.hue * 65535 / 360).toInt()
-        }
-        if (reqBod.props.sat != null) {
-            body["sat"] = (reqBod.props.sat * 254 / 100).toInt()
-        }
-        if (reqBod.props.bri != null) {
-            body["bri"] = (reqBod.props.bri * 254 / 100).toInt()
-        }
-        if (reqBod.props.rst != null && reqBod.props.rst) {
-            body["hue"] = 8418
-            body["bri"] = 254
-            body["sat"] = 140
-        }
+//        val body = JSONObject()
+//
+//        // Assemble a JSON-object with all requested field and correctly scaled values.
+//        if (reqBod.props.pwr != null) {
+//            body["on"] = reqBod.props.pwr
+//        }
+//        if (reqBod.props.hue != null) {
+//            body["hue"] = (reqBod.props.hue * 65535 / 360).toInt()
+//        }
+//        if (reqBod.props.sat != null) {
+//            body["sat"] = (reqBod.props.sat * 254 / 100).toInt()
+//        }
+//        if (reqBod.props.bri != null) {
+//            body["bri"] = (reqBod.props.bri * 254 / 100).toInt()
+//        }
+//        if (reqBod.props.rst != null && reqBod.props.rst) {
+//            body["hue"] = 8418
+//            body["bri"] = 254
+//            body["sat"] = 140
+//        }
 
         return statusUpdate(baseURL, body, groupString, id)
     }
 }
 
-suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, id: Int): String {
+suspend fun statusUpdate(baseURL: String, bodyObject: HueRequestBody, type: String, id: Int): String {
     val stateName = if (type == "groups") "action" else "state"
     val fullURL = "$baseURL$type/$id/$stateName"
 
@@ -324,6 +352,6 @@ suspend fun statusUpdate(baseURL: String, bodyObject: JSONObject, type: String, 
     // Send request to Philips Hue-bridge and return response.
     return client.put {
         url(fullURL)
-        body = bodyObject.toString()
+        body = mapper.writeValueAsString(bodyObject)
     }
 }
