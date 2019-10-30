@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.konfig.ConfigurationProperties
@@ -28,13 +29,16 @@ import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 val client = HttpClient()
-val debug = false
+val mapper = ObjectMapper()
+const val debug = false
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class ResponseList(
     val responses: List<ResponseBody>,
     val errors: List<ErrorBody>?
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class ResponseBody(
     val isGroup: Boolean,
     val id: Int,
@@ -52,12 +56,14 @@ data class RequestBodyList(
     val requestBodyList: List<RequestBody>
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class RequestBody(
     val isGroup: Boolean,
     val id: Int,
     val props: RequestBodyProperty?
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class RequestBodyProperty(
     val pwr: Boolean?,
     val hue: Double?,
@@ -113,7 +119,7 @@ fun startServer(hueKey: String) {
                     println(parsedJSON.toString())
 
                     call.respondText {
-                        parsedJSON.toString()
+                        mapper.writeValueAsString(parsedJSON)
                     }
                 } catch (e: Exception) {
                     println(e.toString())
@@ -142,7 +148,7 @@ fun startServer(hueKey: String) {
                     println(parsedJSON.toString())
 
                     call.respondText {
-                        parsedJSON.toString()
+                        mapper.writeValueAsString(parsedJSON)
                     }
                 } catch (e: Exception) {
                     println(e.toString())
@@ -166,7 +172,6 @@ fun handleResponseJSON(responseJSON: String, idMap: List<Int?>): ResponseList {
 }
 
 fun handleResponseJSON(responseJSONs: List<String>, idMap: List<Int?>): ResponseList {
-    val mapper = ObjectMapper()
     val jsonList = LinkedList<JsonNode>()
 
     responseJSONs.forEach {
