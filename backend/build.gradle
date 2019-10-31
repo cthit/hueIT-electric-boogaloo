@@ -16,8 +16,7 @@ apply plugin: 'application'
 
 group 'HueIT-backend'
 version '0.0.1'
-//mainClassName = "io.ktor.server.netty.EngineMain"
-mainClassName = "BootStrapper"
+mainClassName = "HueIT_backendKt"
 archivesBaseName = "HueIT-backend"
 
 sourceSets {
@@ -42,7 +41,7 @@ dependencies {
     compile "io.ktor:ktor-client-core:$ktor_version"
     implementation "io.ktor:ktor-client-apache:$ktor_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0-M1'
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    implementation "io.ktor:ktor-jackson:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
     compile "com.natpryce:konfig:1.6.10.0"
 }

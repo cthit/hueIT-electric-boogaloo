@@ -81,6 +81,8 @@ data class HueRequestBody(
     val bri: Int?
 )
 
+fun main(args: Array<String>): Unit = startServer(args[0])
+
 fun startServer(hueKey: String) {
     val config = ConfigurationProperties.fromResource("config.properties")
 
