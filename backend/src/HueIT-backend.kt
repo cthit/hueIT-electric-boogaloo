@@ -22,7 +22,6 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.json.simple.JSONObject
 import org.slf4j.event.Level
 import java.util.*
 import kotlin.collections.ArrayList
@@ -30,7 +29,6 @@ import kotlin.collections.set
 
 val client = HttpClient()
 val mapper = ObjectMapper()
-const val debug = false
 const val hueConst: Double = 65535.0 / 360
 const val satConst: Double = 254.0 / 100
 const val briConst: Double = 254.0 / 100
@@ -90,12 +88,16 @@ fun startServer(hueKey: String) {
     val selfPort = Key("server.port", intType)
     val hueHost = Key("huebridge.host", stringType)
     val hueIDMap = Key("hueidmap", stringType)
+    val hueGroupIDMap = Key("huegroupidmap", stringType)
 
     // Fetch and parse list that converts frontend ids to hue ids for lamps.
     val mapString: String = config[hueIDMap].toString()
     val idMap: List<Int?> = mapString.split(", ").map { it.toIntOrNull() }
+    val groupMapString = config[hueGroupIDMap].toString()
+    val groupIdMap: List<Int?> = groupMapString.split(", ").map { it.toIntOrNull() }
 
-    println(idMap)
+    println("Id map: $idMap")
+    println("Group ID map: $groupIdMap")
 
     val baseURL = "http://" + config[hueHost] + "/api/" + hueKey + "/"
 
@@ -124,10 +126,10 @@ fun startServer(hueKey: String) {
                 println(reqBod.toString())
 
                 try {
-                    val responseJSON = handleRequestBody(reqBod, baseURL, idMap)
-                    val parsedJSON = handleResponseJSON(responseJSON, idMap)
+                    val responseJSON = handleRequestBody(reqBod, baseURL, idMap, groupIdMap)
+                    val parsedJSON = handleResponseJSON(responseJSON, idMap, groupIdMap)
 
-                    println(parsedJSON.toString())
+                    println(mapper.writeValueAsString(parsedJSON))
 
                     call.respondText {
                         mapper.writeValueAsString(parsedJSON)
@@ -151,10 +153,10 @@ fun startServer(hueKey: String) {
                 try {
                     // Handle all requests and put the responses in a list.
                     reqBods.requestBodyList.forEach {
-                        responses.add(handleRequestBody(it, baseURL, idMap))
+                        responses.add(handleRequestBody(it, baseURL, idMap, groupIdMap))
                     }
 
-                    val parsedJSON = handleResponseJSON(responses, idMap)
+                    val parsedJSON = handleResponseJSON(responses, idMap, groupIdMap)
 
                     println(parsedJSON.toString())
 
@@ -176,22 +178,23 @@ fun startServer(hueKey: String) {
     server.start(wait = true)
 }
 
-fun handleResponseJSON(responseJSON: String, idMap: List<Int?>): ResponseList {
+fun handleResponseJSON(responseJSON: String, idMap: List<Int?>, groupIdMap: List<Int?>): ResponseList {
     val passList = LinkedList<String>()
     passList.add(responseJSON)
-    return handleResponseJSON(passList, idMap)
+    return handleResponseJSON(passList, idMap, groupIdMap)
 }
 
-fun handleResponseJSON(responseJSONs: List<String>, idMap: List<Int?>): ResponseList {
+fun handleResponseJSON(responseJSONs: List<String>, idMap: List<Int?>, groupIdMap: List<Int?>): ResponseList {
     val jsonList = LinkedList<JsonNode>()
 
+    // Extract response JSONs from the JSON-arrays in the list and store them in another list.
     responseJSONs.forEach {
         val responseObj = mapper.readTree(it)
         println("Full JSON: ${responseObj}")
         if (responseObj.isArray) {
-            for (i in 0 until responseObj.size()) {
-                println("Index $i: ${responseObj.get(i)}")
-                jsonList.add(responseObj.get(i))
+            responseObj.forEachIndexed { index, jsonNode ->
+                println("Index $index: $jsonNode")
+                jsonList.add(jsonNode)
             }
         } else {
             jsonList.add(responseObj)
@@ -199,34 +202,55 @@ fun handleResponseJSON(responseJSONs: List<String>, idMap: List<Int?>): Response
     }
 
     // Translate the parsed JSON-objects into something more readable and then return them.
-    return translateResponseJSON(jsonList, idMap)
+    return translateResponseJSON(jsonList, idMap, groupIdMap)
 }
 
-fun translateResponseJSON(hueJSONS: List<JsonNode>, idMap: List<Int?>): ResponseList {
+fun translateResponseJSON(hueJSONS: List<JsonNode>, idMap: List<Int?>, groupIdMap: List<Int?>): ResponseList {
     // Create one list for each lamp that is defined by idMap.
     // These lists will hold the successfully executed requests for their respective lamp.
-    val jsonSucc = ArrayList<LinkedList<String>>(idMap.size)
+    val jsonLampSucc = ArrayList<LinkedList<String>>(idMap.size)
     for (i in 0..idMap.size) {
-        jsonSucc.add(LinkedList())
+        jsonLampSucc.add(LinkedList())
+    }
+    val jsonGroupSucc = ArrayList<LinkedList<String>>()
+    for (i in 0..groupIdMap.size) {
+        jsonGroupSucc.add(LinkedList())
     }
 
     val errors = LinkedList<ErrorBody>()
 
     println()
     hueJSONS.forEach {
+        // Extract successful requests and store in list for later merging into data class.
         val succ = it.get("success")
-        succ?.fields()?.forEach {
-            val key = it.key
-            val value = it.value.asText()
+        succ?.fields()?.forEach { entry ->
+            val key = entry.key
+            val value = entry.value.asText()
 
             println("Key: $key")
 
             val splitKey = key.split('/')
-            val id = idMap.indexOf(splitKey[2].toInt())
+            val isGroup = splitKey[1] == "groups"
+            val id = if (isGroup) groupIdMap.indexOf(splitKey[2].toInt()) else idMap.indexOf(splitKey[2].toInt())
 
-            jsonSucc[id].add("${splitKey[4]}:$value")
+            val reqData = "${splitKey[4]}:$value"
+
+            if (isGroup) {
+                if (id >= 0 && id < idMap.size) {
+                    jsonGroupSucc[id].add(reqData)
+                } else {
+                    println("Attempting to add data '$reqData' for group with id ${splitKey[2]} but found none in the map.")
+                }
+            } else {
+                if (id >= 0 && id < idMap.size) {
+                    jsonLampSucc[id].add(reqData)
+                } else {
+                    println("Attempting to add data '$reqData' for lamp with id ${splitKey[2]} but found none in the map.")
+                }
+            }
         }
 
+        // Convert error message into something more readable.
         val error = it.get("error")
         if (error != null) {
             assembleErrorJSON(
@@ -236,13 +260,19 @@ fun translateResponseJSON(hueJSONS: List<JsonNode>, idMap: List<Int?>): Response
             )
         }
     }
+    println()
 
     val responseBodies = LinkedList<ResponseBody>()
 
     // Assemble and store ResponseBodies.
-    for (i in 0..idMap.size) {
-        if (jsonSucc[i].isNotEmpty()) {
-            responseBodies.add(assembleResponseJSON(jsonSucc[i], i))
+    jsonLampSucc.forEachIndexed { i, it ->
+        if (it.isNotEmpty()) {
+            responseBodies.add(assembleResponseJSON(it, i, false))
+        }
+    }
+    jsonGroupSucc.forEachIndexed { i, it ->
+        if (it.isNotEmpty()) {
+            responseBodies.add(assembleResponseJSON(it, i, true))
         }
     }
 
@@ -250,7 +280,7 @@ fun translateResponseJSON(hueJSONS: List<JsonNode>, idMap: List<Int?>): Response
     return ResponseList(responseBodies, if (!errors.isEmpty()) errors else null)
 }
 
-fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
+fun assembleResponseJSON(attributes: List<String>, id: Int, isGroup: Boolean): ResponseBody {
     // Store all gathered key-value pairs in a HashMap for easy and simultaneous retrieval.
     val propMap = HashMap<String, String>()
     attributes.forEach {
@@ -258,20 +288,21 @@ fun assembleResponseJSON(attributes: List<String>, id: Int): ResponseBody {
         propMap[pair[0]] = pair[1]
     }
 
-    val hasProps = propMap.isNotEmpty()
-
     // Assemble RequestBodyProperty from the previously created HashMap.
     // Any keys with no values in the map set their respective property in the data class to null.
-    val props = RequestBodyProperty(
-        propMap["on"]?.toBoolean(),
-        propMap["hue"]?.toDouble(),
-        propMap["sat"]?.toDouble(),
-        propMap["bri"]?.toDouble(),
+    val props = if (propMap.isNotEmpty())
+        RequestBodyProperty(
+            propMap["on"]?.toBoolean(),
+            propMap["hue"]?.toDouble(),
+            propMap["sat"]?.toDouble(),
+            propMap["bri"]?.toDouble(),
+            null
+        )
+    else
         null
-    )
 
-    // Assembles and returns the ResponseBody. If the HashMap is empty the RequestBodyProperty is replaced with null.
-    return ResponseBody(false, id, if (hasProps) props else null)
+    // Assembles and returns the ResponseBody.
+    return ResponseBody(isGroup, id, props)
 }
 
 fun assembleErrorJSON(type: Int, address: String, description: String): ErrorBody {
@@ -281,8 +312,8 @@ fun assembleErrorJSON(type: Int, address: String, description: String): ErrorBod
     return ErrorBody(type, isGroup, id, description)
 }
 
-suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<Int?>): String {
-    val id: Int? = if (reqBod.isGroup) reqBod.id else idMap[reqBod.id]
+suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<Int?>, groupIdMap: List<Int?>): String {
+    val id: Int? = if (reqBod.isGroup) groupIdMap[reqBod.id] else idMap[reqBod.id]
     val groupString: String = if (reqBod.isGroup) "groups" else "lights"
 
     if (reqBod.props == null) {
@@ -296,7 +327,7 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
         }
     } else {
         if (id == null) {
-            return "{\"error\": \"Invalid ID.\"}"
+            return "{\"error\": \"That lamp does not exist.\"}"
         }
 
         val props: RequestBodyProperty = reqBod.props
@@ -316,26 +347,6 @@ suspend fun handleRequestBody(reqBod: RequestBody, baseURL: String, idMap: List<
                 (props.bri?.times(briConst))?.toInt()
             )
         }
-//        val body = JSONObject()
-//
-//        // Assemble a JSON-object with all requested field and correctly scaled values.
-//        if (reqBod.props.pwr != null) {
-//            body["on"] = reqBod.props.pwr
-//        }
-//        if (reqBod.props.hue != null) {
-//            body["hue"] = (reqBod.props.hue * 65535 / 360).toInt()
-//        }
-//        if (reqBod.props.sat != null) {
-//            body["sat"] = (reqBod.props.sat * 254 / 100).toInt()
-//        }
-//        if (reqBod.props.bri != null) {
-//            body["bri"] = (reqBod.props.bri * 254 / 100).toInt()
-//        }
-//        if (reqBod.props.rst != null && reqBod.props.rst) {
-//            body["hue"] = 8418
-//            body["bri"] = 254
-//            body["sat"] = 140
-//        }
 
         return statusUpdate(baseURL, body, groupString, id)
     }
@@ -345,9 +356,7 @@ suspend fun statusUpdate(baseURL: String, bodyObject: HueRequestBody, type: Stri
     val stateName = if (type == "groups") "action" else "state"
     val fullURL = "$baseURL$type/$id/$stateName"
 
-    if (debug) {
-        println(bodyObject.toString())
-    }
+    println(mapper.writeValueAsString(bodyObject))
 
     // Send request to Philips Hue-bridge and return response.
     return client.put {
