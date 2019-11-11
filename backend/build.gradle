@@ -9,20 +9,20 @@ buildscript {
     }
 }
 
-apply plugin: "com.github.johnrengelman.shadow"
+// apply plugin: "com.github.johnrengelman.shadow"
 
 apply plugin: 'kotlin'
 apply plugin: 'application'
 
-group 'HueIT-backend'
+group 'hueit'
 version '0.0.1'
-mainClassName = "HueIT_backendKt"
-archivesBaseName = "HueIT-backend"
+mainClassName = "ApplicationKt"
+// archivesBaseName = "HueIT-backend"
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']
     test.kotlin.srcDirs = test.java.srcDirs = ['test']
-    main.resources.srcDirs = ['resources']
+    main.resources.srcDirs = ['main.resources']
     test.resources.srcDirs = ['testresources']
 }
 
@@ -46,11 +46,13 @@ dependencies {
     compile "com.natpryce:konfig:1.6.10.0"
 }
 
+/*
 shadowJar {
     baseName = archivesBaseName
     classifier = null
     version = null
 }
+*/
 
 jar {
     manifest {
