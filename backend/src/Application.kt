@@ -1,8 +1,8 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.Key
-import com.natpryce.konfig.intType
 import com.natpryce.konfig.stringType
+import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
@@ -14,25 +14,22 @@ import io.ktor.http.HttpMethod
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
 import io.ktor.response.respondText
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.util.pipeline.PipelineContext
 import org.slf4j.event.Level
 
 val client = HttpClient()
 val mapper = ObjectMapper()
 
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-
-fun main(args: Array<String>): Unit = startServer(args[0])
-
-fun startServer(hueKey: String) {
+fun Application.hueModule() {
+    val hueKey = "TEST_KEY"
     val config = ConfigurationProperties.fromResource("config.properties")
 
     // Fetch config values
-    val selfPort = Key("server.port", intType)
     val hueHost = Key("huebridge.host", stringType)
     val hueIDMap = Key("hueidmap", stringType)
     val hueGroupIDMap = Key("huegroupidmap", stringType)
@@ -49,36 +46,38 @@ fun startServer(hueKey: String) {
     val baseURL = "http://" + config[hueHost] + "/api/" + hueKey + "/"
     val hueClient = HueClient(baseURL)
 
-    val server = embeddedServer(Netty, port = config[selfPort]) {
-        // Used for translating JSON-objects from frontend to data classes that Kotlin can understand.
-        install(ContentNegotiation) {
-            jackson {}
+    // Used for translating JSON-objects from frontend to data classes that Kotlin can understand.
+    install(ContentNegotiation) {
+        jackson {}
+    }
+
+    // Allows any host to use the backend with POST-requests.
+    install(CORS) {
+        method(HttpMethod.Post)
+        anyHost()
+    }
+
+    install(CallLogging) {
+        level = Level.INFO
+    }
+
+    routing {
+        get("/hello") {
+            call.respondText { "HelloWorld" }
         }
 
-        // Allows any host to use the backend with POST-requests.
-        install(CORS) {
-            method(HttpMethod.Post)
-            anyHost()
+        // Handles single requests.
+        post("/") {
+            index(hueClient, idMap, groupIdMap)
         }
 
-        install(CallLogging) {
-            level = Level.INFO
-        }
-
-        routing {
-            // Handles single requests.
-            post("/") {
-                index(hueClient, idMap, groupIdMap)
-            }
-
-            // Handles lists of requests.
-            post("/list") {
-                handleRequestList(hueClient, idMap, groupIdMap)
-            }
+        // Handles lists of requests.
+        post("/list") {
+            handleRequestList(hueClient, idMap, groupIdMap)
         }
     }
 
-    server.start(wait = true)
+
 }
 
 private suspend fun PipelineContext<Unit, ApplicationCall>.handleRequestList(
