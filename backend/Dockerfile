@@ -1,4 +1,4 @@
-FROM gradle:5.6.2-jdk12 as BUILD
+FROM gradle:5.6.4-jdk12 as BUILD
 
 RUN mkdir -p /home/gradle/src
 WORKDIR /home/gradle/src
