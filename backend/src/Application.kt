@@ -1,7 +1,4 @@
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.natpryce.konfig.ConfigurationProperties
-import com.natpryce.konfig.Key
-import com.natpryce.konfig.stringType
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -17,6 +14,7 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.ktor.util.KtorExperimentalAPI
 import io.ktor.util.pipeline.PipelineContext
 import org.slf4j.event.Level
 
@@ -25,25 +23,19 @@ val mapper = ObjectMapper()
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalAPI
 fun Application.hueModule() {
-    val hueKey = "TEST_KEY"
-    val config = ConfigurationProperties.fromResource("config.properties")
-
     // Fetch config values
-    val hueHost = Key("huebridge.host", stringType)
-    val hueIDMap = Key("hueidmap", stringType)
-    val hueGroupIDMap = Key("huegroupidmap", stringType)
+    val hueKey = environment.config.property("ktor.application.api_key").getString()
+    val hueHost = environment.config.property("ktor.huebridge.host").getString()
+    val idMap: List<Int?> = environment.config.property("ktor.huebridge.idmap").getList().map { it.toIntOrNull() }
+    val groupIdMap: List<Int?> =
+        environment.config.property("ktor.huebridge.groupidmap").getList().map { it.toIntOrNull() }
 
-    // Fetch and parse list that converts frontend ids to hue ids for lamps.
-    val mapString: String = config[hueIDMap].toString()
-    val idMap: List<Int?> = mapString.split(", ").map { it.toIntOrNull() }
-    val groupMapString = config[hueGroupIDMap].toString()
-    val groupIdMap: List<Int?> = groupMapString.split(", ").map { it.toIntOrNull() }
-
-    println("Id map: $idMap")
+    println("Id map:       $idMap")
     println("Group ID map: $groupIdMap")
 
-    val baseURL = "http://" + config[hueHost] + "/api/" + hueKey + "/"
+    val baseURL = "http://$hueHost/api/$hueKey/"
     val hueClient = HueClient(baseURL)
 
     // Used for translating JSON-objects from frontend to data classes that Kotlin can understand.

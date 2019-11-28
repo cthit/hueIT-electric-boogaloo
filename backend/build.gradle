@@ -43,7 +43,6 @@ dependencies {
     implementation "io.ktor:ktor-jackson:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
     testCompile "com.github.tomakehurst:wiremock-jre8:2.25.1"
-    compile "com.natpryce:konfig:1.6.10.0"
 }
 
 shadowJar {
