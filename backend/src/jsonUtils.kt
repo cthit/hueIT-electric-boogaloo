@@ -113,9 +113,9 @@ fun assembleResponseJSON(attributes: List<String>, id: Int, isGroup: Boolean): R
     val props = if (propMap.isNotEmpty())
         RequestBodyProperty(
             propMap["on"]?.toBoolean(),
-            propMap["hue"]?.toDouble(),
-            propMap["sat"]?.toDouble(),
-            propMap["bri"]?.toDouble(),
+            propMap["hue"]?.toDouble()?.div(HUE),
+            propMap["sat"]?.toDouble()?.div(SATURATION),
+            propMap["bri"]?.toDouble()?.div(BRIGHTNESS),
             null
         )
     else

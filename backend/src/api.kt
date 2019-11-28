@@ -34,11 +34,11 @@ data class RequestBody(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RequestBodyProperty(
-    val pwr: Boolean?,
+    val power: Boolean?,
     val hue: Double?,
-    val sat: Double?,
-    val bri: Double?,
-    val rst: Boolean?
+    val saturation: Double?,
+    val brightness: Double?,
+    val reset_colour: Boolean?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

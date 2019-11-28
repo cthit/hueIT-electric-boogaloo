@@ -17,8 +17,8 @@ class HueClient(private val baseUrl: String) {
             return client.get {
                 url(
                     baseUrl +
-                        groupString +
-                        (if (id != null && id >= 0) "/$id" else "")
+                            groupString +
+                            (if (id != null && id >= 0) "/$id" else "")
                 )
             }
         } else {
@@ -28,19 +28,19 @@ class HueClient(private val baseUrl: String) {
 
             val props: RequestBodyProperty = reqBod.props
 
-            val body: HueRequestBody = if (props.rst != null && props.rst) {
+            val body: HueRequestBody = if (props.reset_colour != null && props.reset_colour) {
                 HueRequestBody(
-                    props.pwr,
+                    props.power,
                     8418,
                     140,
                     254
                 )
             } else {
                 HueRequestBody(
-                    props.pwr,
+                    props.power,
                     (props.hue?.times(HUE))?.toInt(),
-                    (props.sat?.times(SATURATION))?.toInt(),
-                    (props.bri?.times(BRIGHTNESS))?.toInt()
+                    (props.saturation?.times(SATURATION))?.toInt(),
+                    (props.brightness?.times(BRIGHTNESS))?.toInt()
                 )
             }
 
